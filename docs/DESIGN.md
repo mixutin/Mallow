@@ -243,7 +243,7 @@ Backends follow the same procedure. `backends.yml` fails when a backend has no `
 | Mac App Store "mallow" | no app of that name | **[H]** [R76] |
 | iOS App Store "mallow" | several unrelated apps, including "mallow - no buy tracker" (getmallow.app). These are class 9 goods, but not in our category | **[H]** [R74][R76] |
 | Software-services company | Mallow Technologies Pvt Ltd (custom app development, India), which is class 42 services, not our category | **[H]** [R75] |
-| GitHub org `mallow-project` | free (not yet registered by us) | **[H]** [R77] |
+| GitHub repo `mixutin/Mallow` | created by the project owner (2026-09-23) | **[H]** |
 | USPTO and EUIPO searches in classes 9 and 42 | **not done** | **[L]** V31 |
 
 **Decision.** "Mallow" is adopted, with the formal USPTO and EUIPO searches (and a lawyer's opinion) as a **G0 exit criterion**. If they fail, the fallback name is "Mullion". Its quick check (GitHub, Homebrew, both App Stores) found no conflict in our category **[H]** [R76][R77]. Every identifier comes from `ProductIdentity` (§3.4.1) and the table below, so a rename before G0 closes is mechanical.
@@ -254,18 +254,18 @@ Backends follow the same procedure. `backends.yml` fails when a backend has no `
 |---|---|
 | Product name | `Mallow` |
 | SwiftPM package / library / CLI / app targets | `Mallow` / `MallowKit` / `mallow` (target `MallowCLI`) / `MallowApp` |
-| Bundle identifier | `io.github.mallow-project.Mallow`. This needs no purchased domain; we control it once the `mallow-project` GitHub org exists (Q4) |
+| Bundle identifier | `io.github.mixutin.Mallow`. This needs no purchased domain; it is derived from the `mixutin` GitHub account that owns the repo (Q4) |
 | URL scheme | `mallow://` |
 | Environment variable prefix | `MALLOW_` (`MALLOW_HOME`, `MALLOW_FAKE_WINE`, `MALLOW_CLI`, `MALLOW_UPDATE_GOLDENS`, `MALLOW_REAL_RUNTIME`) |
 | Data folders | `~/Library/Application Support/Mallow`, `~/Library/Caches/Mallow`, `~/Library/Logs/Mallow` |
-| Data-root marker | `.mallow-root.json` with `"schema": "io.github.mallow-project.data-root/v1"` (§3.4.1) |
+| Data-root marker | `.mallow-root.json` with `"schema": "io.github.mixutin.data-root/v1"` (§3.4.1) |
 | Per-bottle metadata folder | `<bottle>/.mallow/` |
 | Mac shortcuts folder | `~/Applications/Mallow/` |
 | Runtime ID prefix | `mallow-runtime-` (e.g. `mallow-runtime-11.0-r1`) |
 | Signature file format tag | `mallow-sig-v1` |
-| GitHub org / repo / Pages | `mallow-project` / `mallow-project/mallow` / `https://mallow-project.github.io/mallow/` |
-| Catalog URL | `https://mallow-project.github.io/mallow/catalog/v1/catalog.json` |
-| Homebrew tap | `mallow-project/homebrew-tap` (`brew install --cask mallow-project/tap/mallow`) |
+| GitHub org / repo / Pages | `mixutin` (user account) / `mixutin/Mallow` / `https://mixutin.github.io/Mallow/` |
+| Catalog URL | `https://mixutin.github.io/Mallow/catalog/v1/catalog.json` |
+| Homebrew tap | `mixutin/homebrew-tap` (`brew install --cask mixutin/tap/mallow`) |
 | CLI symlink | `~/.local/bin/mallow` |
 
 **Data-root safeguard.** `MallowPaths.ensureDirectories()` refuses to adopt an existing, non-empty data root that lacks a valid `.mallow-root.json`, and fails with `MallowError.foreignDataRoot`. So even another app that happens to use the same folder name can never have its prefixes or runtimes read or written by Mallow.
@@ -304,7 +304,7 @@ Anything whose only source is an observation of CrossOver's proprietary files is
 
 Whisky's maintainer archived the project in 2025. He cited burnout and called free CrossOver-derived frontends "parasitic" on CodeWeavers' funding of Wine on macOS **[H]** [R21]. Mallow responds in five ways:
 
-1. At least two maintainers with release rights from day one (`GOVERNANCE.md`).
+1. Two maintainers with release rights before any signed release. Today there is one (@mixutin); nothing signed with project keys ships until a second maintainer joins and key custody is split (`GOVERNANCE.md`).
 2. Fixes are sent upstream to Wine, DXMT, MoltenVK and winetricks. Each release's notes include an "upstream contributions" section.
 3. The README acknowledges CodeWeavers' role in Wine on macOS.
 4. There are no storefront or anti-cheat hacks.
@@ -312,7 +312,7 @@ Whisky's maintainer archived the project in 2025. He cited burnout and called fr
 
 ### 2.9 Community recipe repository (v0.9)
 
-Before `mallow-project/recipes` opens:
+Before `mixutin/mallow-recipes` opens:
 
 1. **Licence and sign-off.** Recipe data is CC0-1.0 (`LICENSE` in the repo root). Every commit needs DCO sign-off, checked by CI [R86].
 2. **Download-host allowlist.** CI validates every recipe against `recipe.schema.json`. A recipe needs a `license` block, `sourceHosts` and `sourceKind`. Each host in `sourceHosts` must be on `allowed-hosts.json`. Adding a host needs approval from a maintainer listed in `CODEOWNERS`. Warez, abandonware and file-locker hosts are never approved.
@@ -766,19 +766,19 @@ Signatures are **normative**. Implementations may add internal helpers, but must
 // ProductIdentity.swift — the only place product-visible strings are spelled out (§2.6.1)
 public enum ProductIdentity {
     public static let name = "Mallow"
-    public static let bundleIdentifier = "io.github.mallow-project.Mallow"
+    public static let bundleIdentifier = "io.github.mixutin.Mallow"
     public static let urlScheme = "mallow"
     public static let cliName = "mallow"
     public static let environmentPrefix = "MALLOW_"
     public static let dataFolderName = "Mallow"
     public static let bottleMetadataFolder = ".mallow"
     public static let rootMarkerFileName = ".mallow-root.json"
-    public static let rootMarkerSchema = "io.github.mallow-project.data-root/v1"
+    public static let rootMarkerSchema = "io.github.mixutin.data-root/v1"
     public static let runtimeIDPrefix = "mallow-runtime-"
     public static let signatureFormatTag = "mallow-sig-v1"
-    public static let defaultCatalogURL: URL    // https://mallow-project.github.io/mallow/catalog/v1/catalog.json
-    public static let sourceRepositoryURL: URL  // https://github.com/mallow-project/mallow
-    public static let issueTrackerURL: URL      // https://github.com/mallow-project/mallow/issues
+    public static let defaultCatalogURL: URL    // https://mixutin.github.io/Mallow/catalog/v1/catalog.json
+    public static let sourceRepositoryURL: URL  // https://github.com/mixutin/Mallow
+    public static let issueTrackerURL: URL      // https://github.com/mixutin/Mallow/issues
 }
 
 // MallowPaths.swift
@@ -2187,7 +2187,7 @@ Swift's synthesised `Codable` does not produce the formats below. For example, i
 {
   "schemaVersion": 1,
   "defaultRuntimeID": "mallow-runtime-11.0-r1",
-  "catalogURL": "https://mallow-project.github.io/mallow/catalog/v1/catalog.json",
+  "catalogURL": "https://mixutin.github.io/Mallow/catalog/v1/catalog.json",
   "channel": "stable",
   "lastCatalogSequence": 42,
   "externalBottles": ["/Volumes/Games/Mallow Bottles/rpg"],
@@ -2350,11 +2350,11 @@ The manifest sits at the runtime root. It is also published as a separate releas
   "filesDigest": "sha256 of files.sha256",
   "licensesDigest": "sha256 of the sorted licenses/ listing",
   "sourceAssets": [
-    { "name": "mallow-runtime-11.0-r1-source.tar.xz", "url": "https://github.com/mallow-project/mallow/releases/download/runtime-11.0-r1/mallow-runtime-11.0-r1-source.tar.xz" },
-    { "name": "mallow-deps-<depsHash>-sources.tar.xz", "url": "https://github.com/mallow-project/mallow/releases/download/runtime-11.0-r1/mallow-deps-<depsHash>-sources.tar.xz" }
+    { "name": "mallow-runtime-11.0-r1-source.tar.xz", "url": "https://github.com/mixutin/Mallow/releases/download/runtime-11.0-r1/mallow-runtime-11.0-r1-source.tar.xz" },
+    { "name": "mallow-deps-<depsHash>-sources.tar.xz", "url": "https://github.com/mixutin/Mallow/releases/download/runtime-11.0-r1/mallow-deps-<depsHash>-sources.tar.xz" }
   ],
   "deps": { "hash": "<depsHash>", "release": "deps-<depsHash>" },
-  "build": { "repo": "mallow-project/mallow", "commit": "…", "runID": "…", "runner": "macos-15-intel", "sdk": "MacOSX15.x", "peToolchain": "mingw-w64 GCC 13.x" }
+  "build": { "repo": "mixutin/Mallow", "commit": "…", "runID": "…", "runner": "macos-15-intel", "sdk": "MacOSX15.x", "peToolchain": "mingw-w64 GCC 13.x" }
 }
 ```
 
@@ -2384,13 +2384,13 @@ Published at `…/catalog/v1/catalog.json` with `catalog.json.sig`.
       "version": "11.0-r1",
       "versionKey": [11, 0, 1],
       "displayName": "Mallow Runtime 11.0 (r1)",
-      "archive": { "url": "https://github.com/mallow-project/mallow/releases/download/runtime-11.0-r1/mallow-runtime-11.0-r1-x86_64.tar.xz", "sha256": "…", "size": 340000000 },
-      "manifest": { "url": "https://github.com/mallow-project/mallow/releases/download/runtime-11.0-r1/mallow-runtime-11.0-r1.manifest.json", "sha256": "…", "size": 4096, "format": "file", "installName": "manifest.json" },
+      "archive": { "url": "https://github.com/mixutin/Mallow/releases/download/runtime-11.0-r1/mallow-runtime-11.0-r1-x86_64.tar.xz", "sha256": "…", "size": 340000000 },
+      "manifest": { "url": "https://github.com/mixutin/Mallow/releases/download/runtime-11.0-r1/mallow-runtime-11.0-r1.manifest.json", "sha256": "…", "size": 4096, "format": "file", "installName": "manifest.json" },
       "minMacOS": "14.0",
       "minAppVersion": "0.2.0",
       "license": "LGPL-2.1-or-later",
-      "sourceURL": "https://github.com/mallow-project/mallow/releases/tag/runtime-11.0-r1",
-      "releaseNotesURL": "https://github.com/mallow-project/mallow/releases/tag/runtime-11.0-r1",
+      "sourceURL": "https://github.com/mixutin/Mallow/releases/tag/runtime-11.0-r1",
+      "releaseNotesURL": "https://github.com/mixutin/Mallow/releases/tag/runtime-11.0-r1",
       "requiresRuntimeFeatures": []
     },
     {
@@ -2402,7 +2402,7 @@ Published at `…/catalog/v1/catalog.json` with `catalog.json.sig`.
       "version": "0.80",
       "versionKey": [0, 80],
       "displayName": "DXMT 0.80",
-      "archive": { "url": "https://github.com/mallow-project/mallow/releases/download/backends-2026.10/dxmt-0.80-mallow1.tar.xz", "sha256": "…", "size": 19000000 },
+      "archive": { "url": "https://github.com/mixutin/Mallow/releases/download/backends-2026.10/dxmt-0.80-mallow1.tar.xz", "sha256": "…", "size": 19000000 },
       "minMacOS": "14.0",
       "minAppVersion": "0.2.0",
       "license": "MIT AND Apache-2.0 WITH LLVM-exception AND NCSA",
@@ -2659,7 +2659,7 @@ Every edit goes through `BottleSettingsApplier.edit`.
 - **Per-program sheet:** arguments, working directory, environment, locale, backend override, HUD, NVEXT/MetalFX/NVAPI, "Create Mac shortcut". It shows "Also applies when Steam starts this game" for backend and MetalFX/NVAPI, because those are per-image map rules. For environment-only options it shows "Only when launched from Mallow" (§4.5).
 - **Runtimes window:** installed and available runtimes and backends, install/remove/rollback, "Set as default", "Import Standard Wine…", "Import Game Porting Toolkit…" (`GPTKImportSheet`, with the licence text and an Accept button). Each runtime and backend shows its licence summary and a **"Source code" link** (from `licenses/SOURCE.md`, or `CatalogEntry.sourceURL`).
 - **`TermsSheet`:** shown before any recipe, verb or winetricks run. It gives the terms name and link, the real download hosts, and a "third-party mirror" badge where it applies. Accept, or Cancel.
-- **Acknowledgements (`AcknowledgementsView`, menu Mallow → Acknowledgements):** shows `LICENSE`, `NOTICE` and `THIRD_PARTY_LICENSES.md` from `Bundle.main`, and a link "Source code for this version" to the `MallowSourceURL` Info.plist value (`https://github.com/mallow-project/mallow/tree/v<version>`).
+- **Acknowledgements (`AcknowledgementsView`, menu Mallow → Acknowledgements):** shows `LICENSE`, `NOTICE` and `THIRD_PARTY_LICENSES.md` from `Bundle.main`, and a link "Source code for this version" to the `MallowSourceURL` Info.plist value (`https://github.com/mixutin/Mallow/tree/v<version>`).
 - **Onboarding:**
   1. **Rosetta** (`RosettaConsentSheet`). If Rosetta is missing, the sheet says: "Installing Rosetta 2 means you accept Apple's software licence agreement", with a link to https://www.apple.com/legal/sla/ and explicit **Agree and Install** and Cancel buttons. Agree records a `ConsentRecord` in `settings.json`, then runs `softwareupdate` with `Rosetta.nonInteractiveInstallArguments(consent:)`. If that fails without administrator rights, the sheet shows `Rosetta.interactiveCommand` (without `--agree-to-license`) to copy into Terminal, where `softwareupdate` asks for agreement itself **[M]** [R38] (V16).
   2. **Runtime download.** Before v0.2 this is the builtin Standard Wine pin; from v0.2 on it is the catalog's Mallow Runtime.
@@ -2698,7 +2698,7 @@ cp "$BIN/mallow"    "$APP/Contents/Helpers/mallow"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
 /usr/bin/plutil -replace CFBundleShortVersionString -string "$VERSION" "$APP/Contents/Info.plist"
 /usr/bin/plutil -replace CFBundleVersion -string "$BUILD_NUMBER" "$APP/Contents/Info.plist"
-/usr/bin/plutil -replace MallowSourceURL -string "https://github.com/mallow-project/mallow/tree/$GIT_REF" "$APP/Contents/Info.plist"
+/usr/bin/plutil -replace MallowSourceURL -string "https://github.com/mixutin/Mallow/tree/$GIT_REF" "$APP/Contents/Info.plist"
 scripts/gen-third-party-licenses.sh --check        # fails if THIRD_PARTY_LICENSES.md is stale vs Package.resolved
 cp LICENSE NOTICE THIRD_PARTY_LICENSES.md "$APP/Contents/Resources/"
 scripts/make-icns.sh Resources/AppIcon-1024.png "$APP/Contents/Resources/AppIcon.icns"
@@ -2722,7 +2722,7 @@ This is based on the research team's local test, where an assembled `.app` signe
 
 **`scripts/verify-app-bundle.sh`** unzips the artifact into a temp directory. It fails unless all of these hold:
 
-- `Contents/Resources/LICENSE` exists and contains "GNU GENERAL PUBLIC LICENSE" and "Version 3".
+- `Contents/Resources/LICENSE` exists and contains "BSD Zero Clause License".
 - `NOTICE` and `THIRD_PARTY_LICENSES.md` exist.
 - `THIRD_PARTY_LICENSES.md` names every package in `Package.resolved`, and from v0.8 includes Sparkle's bsdiff notice.
 - `MallowSourceURL` is set.
@@ -2735,7 +2735,7 @@ This is based on the research team's local test, where an assembled `.app` signe
 | Key | Value |
 |---|---|
 | `CFBundleExecutable` | `Mallow` |
-| `CFBundleIdentifier` | `io.github.mallow-project.Mallow` (§2.6.1) |
+| `CFBundleIdentifier` | `io.github.mixutin.Mallow` (§2.6.1) |
 | `CFBundleName`, `CFBundleDisplayName` | `Mallow` |
 | `CFBundlePackageType` | `APPL` |
 | `CFBundleShortVersionString`, `CFBundleVersion` | set by the build script |
@@ -2975,7 +2975,7 @@ It drops hits inside C comments and copyright lines. Every remaining hit must ap
 **`0003-winedbg-point-crash-dialog-at-mallow-tracker.patch`**
 
 - The CX tree's `programs/winedbg/winedbg.rc` links to `https://www.codeweavers.com/compatibility/` and to a codeweavers.com support-ticket page **[H]** [R58]. Upstream wine-11.0 links to the WineHQ AppDB and the WineHQ GitLab bugs page **[H]** [R59].
-- We replace both links with `https://github.com/mallow-project/mallow/issues` and the matching text ("report it to the Mallow project"). We point at our own tracker, not back at WineHQ, because WineHQ asks for bug reports against unmodified Wine **[M]**, and a modified CX-based build is not that. Any `.po` translations that carry the URLs are updated the same way (the audit finds them). Copyright headers are untouched.
+- We replace both links with `https://github.com/mixutin/Mallow/issues` and the matching text ("report it to the Mallow project"). We point at our own tracker, not back at WineHQ, because WineHQ asks for bug reports against unmodified Wine **[M]**, and a modified CX-based build is not that. Any `.po` translations that carry the URLs are updated the same way (the audit finds them). Copyright headers are untouched.
 
 **Upstreaming.** Upstream Wine is unlikely to accept environment-variable hooks like 0001 and 0002, so we expect to maintain them downstream. 0003 is Mallow-specific by nature.
 
@@ -3545,7 +3545,7 @@ If `sandbox.hideHostRoot` removed `z:`, targets outside `drive_c` fail with `.pr
 4. Run `wine wineboot --init` through `LaunchService.runHelper`, with `baseLayers(includeImageMap: false)` (overrides include `winemenubuilder.exe=`). **Do not set `WINEARCH`.** New WoW64 is the default for this runtime **[H]** [R7].
 5. `waitUntilStopped(timeout: 120 s)`. `wineboot` can return before the `.reg` files are written, so we must wait for the server **[H]** [R24-wt].
 6. `LaunchService.applyPrefix(plan)` with the plan from `BottleSettingsApplier.plan(…, server: nil)`. This writes `applied.prefix`.
-7. If `sandbox.linkHomeFolders == false`, replace the `drive_c/users/<user>/{Documents,Downloads,Music,Pictures,Videos}` symlinks with real folders **[H]** [R8-shell].
+7. If `sandbox.linkHomeFolders == false`, replace the `drive_c/users/<user>/{Desktop,Documents,Downloads,Music,Pictures,Videos}` symlinks with real folders **[H]** [R8-shell].
 8. Set `state: "ready"`. Store the template in the cache on the first successful creation per key.
 
 **Golden test.** `create-bottle-commands.json` records the ordered sequence of `(executable, arguments, selected env keys)` from `RecordingSpawner`. `BottleCreatorIntegrationTests` owns it, not the launch goldens.
@@ -3749,7 +3749,7 @@ This assumes 2–3 part-time contributors. Durations are rough estimates.
 ### Gate G0 "Before any code" (about 1 week; blocks v0.1)
 
 - **Name.** Complete the clearance: formal USPTO and EUIPO searches in classes 9 and 42 for "Mallow", and a lawyer's opinion. If they fail, switch to "Mullion" and re-run the checks (§2.6) (Q2, V31).
-- **Identity.** Register the GitHub org `mallow-project` and the repo, and reserve the Homebrew tap name (Q4). `ProductIdentity.swift` values are then final.
+- **Identity.** The repo is `mixutin/Mallow` (Q4, decided). Reserve the Homebrew tap name. `ProductIdentity.swift` values are then final.
 - **Licence.** `LICENSE` stays 0BSD (committed). Add `NOTICE`, `recipes/LICENSE` and `schemas/LICENSE` (CC0), and adopt the DCO (§2.1, Q1). This document is committed only in or after that commit.
 - **Governance.** `GOVERNANCE.md` (≥ 2 maintainers, key custody) and `SECURITY.md` (security and abuse contact).
 - **Exit criteria:** all of the above merged. `SECURITY_MODEL.md` needs no rename, because it already says "Mallow".
@@ -3879,7 +3879,7 @@ This assumes 2–3 part-time contributors. Durations are rough estimates.
 |---|---|---|---|
 | Q1 | Licence | **Decided (2026-09-23, project owner):** 0BSD (frontend, scripts, docs), LGPL-2.1-or-later (runtime patches), CC0-1.0 (recipes, schemas) (§2.1). `LICENSE` is already committed as 0BSD. | G0 |
 | Q2 | Name | **Decided provisionally:** "Mallow" (fallback "Mullion"), pending formal USPTO/EUIPO searches and a lawyer's opinion (§2.6, V31). Decided **before** Q4. | G0 |
-| Q4 | GitHub org, Pages URL, bundle identifier | **Proposed:** `mallow-project`, `io.github.mallow-project.Mallow`. Register the org as soon as Q2 closes. | G0 (the catalog URL and bundle ID are compiled into the app) |
+| Q4 | GitHub org, Pages URL, bundle identifier | **Decided (project owner, 2026-09-23):** repo `mixutin/Mallow`, Pages `https://mixutin.github.io/Mallow/`, bundle identifier `io.github.mixutin.Mallow`. If the project later moves to a GitHub organisation, GitHub redirects the repo URLs, but the bundle identifier, root-marker schema and catalog URL are compiled into the app and must stay stable or be migrated deliberately. | G0 (the catalog URL and bundle ID are compiled into the app) |
 | Q3 | Legal review of the GPTK import flow (§2.4), the LGPL source procedure (§2.3) and codec patents | Open | v0.5 / v1.0 |
 | Q5 | Which legal entity holds the Apple Developer ID and the signing keys (for example a fiscal host)? | Open | v0.8 |
 | Q6 | Base policy after CX 26.3: follow each CodeWeavers LGPL drop, or rebase the CX diff onto upstream Wine releases? | Open | v0.9 |
