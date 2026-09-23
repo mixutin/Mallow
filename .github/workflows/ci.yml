@@ -1,0 +1,164 @@
+# SPDX-License-Identifier: 0BSD
+#
+# Continuous integration for Mallow.
+#
+# - checks: every JSON and YAML file parses, and every .swift file carries an
+#   SPDX licence header (skipped while there are no Swift files).
+# - swift:  `swift build` and the tests on an Apple Silicon macOS runner. Every
+#   step is skipped until Package.swift exists (planned for v0.1).
+#
+# This is the pre-code starting point. DESIGN.md §7.5 describes the full ci.yml
+# (lint, Xcode and Command Line Tools test jobs, schemas, recipes, generated
+# files, app bundle check), which grows from here as those scripts land.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  checks:
+    name: JSON, YAML and SPDX checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install PyYAML
+        run: python -m pip install PyYAML==6.0.3
+
+      - name: Validate JSON and YAML files
+        run: |
+          python - <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          import yaml
+
+          # Build output, dependencies and caches are not ours to check.
+          SKIP_DIRS = {".git", ".build", ".swiftpm", ".venv", "venv", ".cache",
+                       "node_modules", "site", "DerivedData", "dist"}
+
+          class Loader(yaml.SafeLoader):
+              """SafeLoader that accepts, but never executes, custom tags such as
+              mkdocs.yml's !!python/name: and !ENV."""
+
+          def _any_tag(loader, _suffix, node):
+              if isinstance(node, yaml.ScalarNode):
+                  return loader.construct_scalar(node)
+              if isinstance(node, yaml.SequenceNode):
+                  return loader.construct_sequence(node)
+              return loader.construct_mapping(node)
+
+          Loader.add_multi_constructor("tag:yaml.org,2002:python/", _any_tag)
+          Loader.add_multi_constructor("!", _any_tag)
+
+          checked = failed = 0
+          for path in sorted(pathlib.Path(".").rglob("*")):
+              if not path.is_file() or SKIP_DIRS.intersection(path.parts):
+                  continue
+              suffix = path.suffix.lower()
+              if suffix not in {".json", ".yml", ".yaml"}:
+                  continue
+              # Test fixtures that are meant to be malformed opt out by name.
+              if ".invalid." in path.name:
+                  continue
+              checked += 1
+              try:
+                  text = path.read_text(encoding="utf-8")
+                  if suffix == ".json":
+                      json.loads(text)
+                  else:
+                      list(yaml.load_all(text, Loader=Loader))
+              except Exception as exc:  # report every bad file, then fail
+                  failed += 1
+                  message = " ".join(str(exc).split())
+                  print(f"::error file={path}::{message}")
+
+          print(f"Checked {checked} JSON/YAML file(s); {failed} failed.")
+          sys.exit(1 if failed else 0)
+          PY
+
+      - name: Check SPDX headers in Swift files
+        run: |
+          checked=0
+          missing=0
+          while IFS= read -r -d '' f; do
+            checked=$((checked + 1))
+            # The header must be in the first 5 lines (Package.swift puts its
+            # `// swift-tools-version:` line first).
+            header=$(head -n 5 -- "$f" | grep -m1 -o 'SPDX-License-Identifier: *[^ ]*' || true)
+            if [ -z "$header" ]; then
+              echo "::error file=${f#./},line=1::Missing '// SPDX-License-Identifier: 0BSD' in the first 5 lines."
+              missing=$((missing + 1))
+            elif [ "${header##* }" != "0BSD" ]; then
+              echo "::warning file=${f#./},line=1::Licence is '${header##* }', not 0BSD. Record third-party code in NOTICE and THIRD_PARTY_LICENSES.md."
+            fi
+          done < <(find . \( -path ./.git -o -path ./.build -o -path ./.swiftpm -o -path ./DerivedData \) -prune \
+                     -o -type f -name '*.swift' -print0)
+          if [ "$checked" -eq 0 ]; then
+            echo "No Swift files yet; skipping the SPDX header check."
+            exit 0
+          fi
+          echo "Checked ${checked} Swift file(s); ${missing} missing an SPDX header."
+          [ "$missing" -eq 0 ]
+
+  swift:
+    name: Swift build and test (macOS, Apple Silicon)
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+
+      - name: No Swift package yet
+        if: hashFiles('Package.swift') == ''
+        run: echo "::notice::No Package.swift yet (design phase). Skipping swift build and swift test."
+
+      - name: Show the toolchain
+        if: hashFiles('Package.swift') != ''
+        run: |
+          sw_vers
+          uname -m
+          xcode-select -p
+          swift --version
+
+      - name: Build
+        if: hashFiles('Package.swift') != ''
+        run: swift build
+
+      - name: Test
+        if: hashFiles('Package.swift') != ''
+        run: |
+          if [ ! -d Tests ]; then
+            echo "::notice::No Tests/ directory yet. Skipping swift test."
+            exit 0
+          fi
+          # scripts/test.sh (DESIGN.md §7.4) builds fake-wine and the CLI first and
+          # exports MALLOW_FAKE_WINE and MALLOW_CLI, which the tests need.
+          if [ -x scripts/test.sh ]; then
+            scripts/test.sh
+          else
+            swift test
+          fi
