@@ -1,0 +1,29 @@
+# SwiftPM / Xcode
+.build/
+.swiftpm/
+*.xcodeproj/
+xcuserdata/
+DerivedData/
+Package.resolved.bak
+
+# App bundles and release artifacts
+/dist/
+*.app/
+*.dmg
+*.zip
+*.tar.xz
+*.tar.gz
+
+# Wine runtime build output
+/runtime/build/
+/runtime/out/
+/runtime/src/
+
+# Docs site
+/site/
+.cache/
+__pycache__/
+.venv/
+
+# macOS
+.DS_Store
