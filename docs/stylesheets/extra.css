@@ -1,0 +1,143 @@
+/* SPDX-License-Identifier: 0BSD */
+/* Mallow site theme on top of Material for MkDocs. Colours: mallow mauve with a pink accent. */
+
+/* ---- Palette (primary: custom, accent: custom in mkdocs.yml) ---- */
+:root > * {
+  --md-primary-fg-color: #6a3d7c;
+  --md-primary-fg-color--light: #8e5ba1;
+  --md-primary-fg-color--dark: #4d2a5b;
+  --md-primary-bg-color: #ffffff;
+  --md-primary-bg-color--light: #ffffffb3;
+  --md-accent-fg-color: #b0337a;
+  --md-accent-fg-color--transparent: #b0337a1a;
+  --md-typeset-a-color: #6a3d7c;
+  --mallow-card-border: #6a3d7c33;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-hue: 275deg;
+}
+
+[data-md-color-scheme="slate"][data-md-color-primary="custom"] {
+  --md-primary-fg-color: #4d2a5b;
+  --md-primary-fg-color--light: #8e5ba1;
+  --md-primary-fg-color--dark: #3a1f45;
+  --md-accent-fg-color: #f08cc4;
+  --md-accent-fg-color--transparent: #f08cc41a;
+  --md-typeset-a-color: #d9b3ea;
+  --mallow-card-border: #d9b3ea33;
+}
+
+/* ---- Home page hero ---- */
+.mallow-hero {
+  clear: both; /* sit below the floated edit/view buttons so the hero stays centred */
+  text-align: center;
+  padding: 0.4rem 0 0.6rem;
+}
+
+.mallow-hero img.mallow-hero__icon {
+  width: 5.5rem;
+  height: 5.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.md-typeset .mallow-hero h1 {
+  margin: 0 0 0.4rem;
+  font-weight: 700;
+  font-size: 2.6rem;
+  letter-spacing: -0.02em;
+  color: var(--md-default-fg-color);
+}
+
+/* The invisible permalink would push the centred title off-centre. */
+.md-typeset .mallow-hero h1 .headerlink {
+  display: none;
+}
+
+.md-typeset .mallow-hero .mallow-hero__tagline {
+  max-width: 34rem;
+  margin: 0 auto 1rem;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: var(--md-default-fg-color--light);
+}
+
+.md-typeset .mallow-hero .md-button {
+  margin: 0.25rem 0.2rem;
+}
+
+/* In dark mode the header colour is too dark for outline buttons; use the link colour instead. */
+[data-md-color-scheme="slate"] .md-typeset .md-button:not(.md-button--primary) {
+  color: var(--md-typeset-a-color);
+  border-color: var(--md-typeset-a-color);
+}
+
+[data-md-color-scheme="slate"] .md-typeset .md-button--primary {
+  background-color: #8e5ba1;
+  border-color: #8e5ba1;
+  color: #ffffff;
+}
+
+[data-md-color-scheme="slate"] .md-typeset .md-button:focus,
+[data-md-color-scheme="slate"] .md-typeset .md-button:hover {
+  background-color: var(--md-accent-fg-color);
+  border-color: var(--md-accent-fg-color);
+  color: #1e1a22;
+}
+
+/* Small "pre-alpha" pill used in the hero */
+.md-typeset .mallow-status {
+  display: inline-block;
+  padding: 0.1rem 0.6rem;
+  margin-bottom: 0.8rem;
+  border-radius: 1rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--md-accent-fg-color);
+  background: var(--md-accent-fg-color--transparent);
+  border: 1px solid var(--md-accent-fg-color);
+}
+
+/* ---- Cards ---- */
+.md-typeset .grid.cards > ul > li,
+.md-typeset .grid > .card {
+  border-color: var(--mallow-card-border);
+}
+
+.md-typeset .grid.cards > ul > li:hover,
+.md-typeset .grid > .card:hover {
+  border-color: var(--md-accent-fg-color);
+}
+
+/* ---- Tables: let wide design tables scroll instead of squashing ---- */
+.md-typeset table:not([class]) {
+  font-size: 0.72rem;
+}
+
+.md-typeset table:not([class]) th {
+  white-space: nowrap;
+}
+
+/* ---- Mermaid diagrams: centre them and give them room ---- */
+.md-typeset .mermaid {
+  text-align: center;
+  margin: 1.2em 0;
+}
+
+/* ---- "Planned" badge used in prose: <span class="mallow-planned">planned</span> ---- */
+.md-typeset .mallow-planned {
+  display: inline-block;
+  padding: 0 0.45em;
+  border-radius: 0.3em;
+  font-size: 0.75em;
+  font-weight: 600;
+  vertical-align: 0.1em;
+  color: var(--md-primary-fg-color--light);
+  border: 1px solid currentColor;
+}
+
+[data-md-color-scheme="slate"] .md-typeset .mallow-planned {
+  color: var(--md-typeset-a-color);
+}

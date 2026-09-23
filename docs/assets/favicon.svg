@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Mallow">
+  <!-- SPDX-License-Identifier: 0BSD -->
+  <!-- Mallow icon: the header mark on a rounded mauve tile, so it reads on light and dark backgrounds. -->
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8e5ba1"/>
+      <stop offset="1" stop-color="#5a3169"/>
+    </linearGradient>
+  </defs>
+  <rect width="48" height="48" rx="11" fill="url(#tile)"/>
+  <g fill="#fdf3f9" transform="translate(24 24) scale(0.78) translate(-24 -24)">
+    <path id="petal" d="M24 24C16.5 19.5 15.5 9 24 4.5C32.5 9 31.5 19.5 24 24Z"/>
+    <use href="#petal" transform="rotate(72 24 24)"/>
+    <use href="#petal" transform="rotate(144 24 24)"/>
+    <use href="#petal" transform="rotate(216 24 24)"/>
+    <use href="#petal" transform="rotate(288 24 24)"/>
+    <circle cx="24" cy="24" r="5" fill="#f2a3cf"/>
+    <circle cx="24" cy="24" r="2.2" fill="#c2408a"/>
+  </g>
+</svg>
