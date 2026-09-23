@@ -1,0 +1,134 @@
+Mallow
+Copyright (C) 2026 Mixutin and the Mallow contributors
+
+Mallow's own code, scripts and documentation are licensed under the
+BSD Zero Clause License (0BSD). See LICENSE.
+
+0BSD does not require this file. It exists as a courtesy, to credit the
+work that shaped Mallow. Third-party components that Mallow uses or
+distributes, and their licences, are listed in THIRD_PARTY_LICENSES.md.
+
+Source code: https://github.com/mixutin/Mallow
+
+
+=======================================================================
+Prior art
+=======================================================================
+
+The projects below shaped Mallow's design through their ideas,
+behaviours, file formats and public documentation.
+
+NO CODE from any of these projects is included in Mallow's 0BSD
+frontend (MallowKit, the mallow command-line tool, the Mallow app, and
+the repository scripts). Every line of the frontend is written fresh.
+Where a type name or a behaviour matches one of these projects, the
+implementation is our own.
+
+Some of these projects (Wine, DXMT, DXVK-macOS, MoltenVK) will also be
+distributed by Mallow as separate components, unmodified or built from
+their published source, under their own licences. Those components are
+not part of the 0BSD frontend. See THIRD_PARTY_LICENSES.md.
+
+
+Wine
+  https://www.winehq.org/
+  The compatibility layer that everything in Mallow is built on.
+  Licence: LGPL-2.1-or-later. The Mallow Runtime will be a build of
+  Wine, downloaded separately from the app, under Wine's licence, with
+  its complete corresponding source.
+
+CodeWeavers' LGPL Wine sources
+  https://www.codeweavers.com/crossover/source
+  CodeWeavers publishes the Wine sources behind its products under the
+  LGPL, and funds a large share of Wine development, especially on
+  macOS. The Mallow Runtime will be built from that source release.
+  Mallow uses only those LGPL sources, under their licence, and never
+  any proprietary CodeWeavers file.
+
+Whisky
+  https://github.com/Whisky-App/Whisky  (GPL-3.0, archived)
+  Showed what a simple, native SwiftUI Wine frontend for Apple Silicon
+  can look like.
+
+frankea/Whisky
+  https://github.com/frankea/Whisky  (GPL-3.0)
+  A maintained Whisky fork. Ideas: importing Apple's Game Porting
+  Toolkit from the user's own copy, choosing a graphics backend with a
+  resolver, the "hide D3D12" preset, per-program NVAPI rules, and its
+  Steam compatibility notes. Some Mallow type names match its names
+  (WineEnvironment, DLLOverrides, GPTKImporter, BottleSettings).
+  Also frankea/winecx-gptk (https://github.com/frankea/winecx-gptk),
+  whose build notes and Steam findings were read for ideas only.
+
+Heroic Games Launcher
+  https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher  (GPL-3.0)
+  How a game launcher builds the Wine environment for each game.
+
+Bottles
+  https://github.com/bottlesdevs/Bottles  (GPL-3.0)
+  The bottle configuration model, and writing configuration files
+  atomically (write a temporary file, then rename it).
+
+Mythic
+  https://github.com/MythicApp/Mythic  (GPL-3.0)
+  Downloading and updating Wine engines from a catalog.
+
+Gcenx's Wine builds
+  https://github.com/Gcenx/macOS_Wine_builds
+  https://github.com/Gcenx/macports-wine
+  WineHQ packages for macOS, which Mallow plans to offer as an interim
+  "Standard Wine" runtime, and the WINEDLLPATH_PREPEND idea: a private
+  DLL search path that lets graphics backends take priority over Wine's
+  own DLLs. Mallow's runtime patch uses the same variable name for
+  compatibility, but it is our own implementation.
+
+DXMT
+  https://github.com/3Shain/dxmt
+  Direct3D 10 and 11 translation to Metal. To be distributed by Mallow
+  as a separate graphics backend under its own licence (MIT up to
+  v0.80, LGPL-2.1-or-later afterwards).
+
+DXVK-macOS
+  https://github.com/Gcenx/DXVK-macOS
+  The macOS build of DXVK (https://github.com/doitsujin/dxvk), which
+  translates Direct3D to Vulkan. To be distributed by Mallow as a
+  separate graphics backend under its own licence (zlib).
+
+MoltenVK
+  https://github.com/KhronosGroup/MoltenVK
+  Vulkan on top of Metal. To be included in the Mallow Runtime under
+  its own licence (Apache-2.0).
+
+Also consulted, for ideas and facts only:
+  - winetricks (https://github.com/Winetricks/winetricks, LGPL-2.1-or-later).
+    Download URLs and hashes are facts and may appear in Mallow's CC0
+    recipes; script logic is never copied. Mallow will download
+    winetricks itself, unmodified, when a user first needs it.
+  - wine-msync (https://github.com/marzent/wine-msync).
+  - highball-engine (https://github.com/gauthierpiarrette/highball-engine),
+    for its pinned build inputs and CI experience.
+
+
+=======================================================================
+Reused code
+=======================================================================
+
+None yet.
+
+Mallow's 0BSD frontend may only reuse code under permissive licences
+(0BSD, MIT, BSD, ISC, Apache-2.0, zlib, CC0), with the original notices
+kept. Any such reuse is recorded here and in THIRD_PARTY_LICENSES.md.
+See CONTRIBUTING.md for the clean-room rules.
+
+
+=======================================================================
+Trademarks
+=======================================================================
+
+CrossOver is a registered trademark of CodeWeavers, Inc. Mallow is not
+affiliated with, endorsed by or sponsored by CodeWeavers, Inc., or by
+any other project named in this file. Names are used only to give
+credit and to describe compatibility.
+
+
+SPDX-License-Identifier: 0BSD
