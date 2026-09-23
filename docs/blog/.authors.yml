@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: 0BSD
+#
+# Devlog authors. The ID (the key) is used under `authors:` in each post.
+authors:
+  mixutin:
+    name: Mixutin
+    description: Maintainer
+    avatar: https://github.com/mixutin.png
+    url: https://github.com/mixutin
