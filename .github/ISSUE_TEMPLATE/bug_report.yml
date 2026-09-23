@@ -1,0 +1,157 @@
+# SPDX-License-Identifier: 0BSD
+name: Bug report
+description: Something in Mallow doesn't work as described.
+title: "[Bug]: "
+labels: ["type:bug", "status:needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug!
+
+        **Mallow is pre-alpha.** No release exists yet, so bug reports apply to builds from source.
+        - **Security vulnerabilities must not be reported here.** Use [private reporting](https://github.com/mixutin/Mallow/security/advisories/new) instead ([SECURITY.md](https://github.com/mixutin/Mallow/blob/main/SECURITY.md)).
+        - To say how a game or app runs, use the [compatibility report](https://github.com/mixutin/Mallow/issues/new?template=compatibility_report.yml) form.
+        - Questions belong in [Discussions](https://github.com/mixutin/Mallow/discussions).
+        - Please report one bug per issue, and check for personal information before pasting logs.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you start
+      options:
+        - label: I searched the existing issues and this bug hasn't been reported yet.
+          required: true
+        - label: This is not a security vulnerability.
+          required: true
+        - label: I'm using Mallow from this repository (a release or a build from source), not a third-party repack.
+          required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the bug clearly. Include error messages exactly as shown.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The smallest set of steps that shows the bug, starting from a new bottle if possible.
+      placeholder: |
+        1. Create a bottle with `mallow bottle create Test`
+        2. Run `mallow run --bottle Test --wait notepad`
+        3. …
+    validations:
+      required: true
+
+  - type: input
+    id: mallow-version
+    attributes:
+      label: Mallow version
+      description: The release version, or the commit hash if you built from source.
+      placeholder: "0.1.0 (git abc1234)"
+    validations:
+      required: true
+
+  - type: input
+    id: macos-version
+    attributes:
+      label: macOS version
+      description: From Apple menu → About This Mac, or run `sw_vers` in Terminal.
+      placeholder: "macOS 26.5"
+    validations:
+      required: true
+
+  - type: input
+    id: mac-model
+    attributes:
+      label: Mac model
+      description: Model, chip and memory.
+      placeholder: "MacBook Air (M2, 2022), 16 GB"
+    validations:
+      required: true
+
+  - type: input
+    id: runtime-version
+    attributes:
+      label: Runtime version
+      description: The Wine runtime the bottle uses. `mallow runtime list` shows it. Leave empty if the bug happens before any runtime is involved.
+      placeholder: "mallow-runtime-11.0-r1 or standard-wine-stable-11.0_1"
+
+  - type: dropdown
+    id: backend
+    attributes:
+      label: Graphics backend
+      description: The backend set for the bottle or program. If it's Auto, tell us below which backend it picked, if you know.
+      options:
+        - Auto
+        - D3DMetal (imported from Apple's Game Porting Toolkit)
+        - DXMT
+        - DXVK (via MoltenVK)
+        - wined3d
+        - Not applicable / don't know
+      default: 5
+    validations:
+      required: true
+
+  - type: dropdown
+    id: trust-mode
+    attributes:
+      label: Trust mode
+      options:
+        - Standard
+        - Offline
+        - Untrusted
+        - Not applicable / don't know
+      default: 3
+
+  - type: dropdown
+    id: interface
+    attributes:
+      label: Where does the bug happen?
+      multiple: true
+      options:
+        - Mallow app
+        - mallow CLI
+        - A Mac shortcut or mallow:// link
+        - A program started by Steam or another launcher inside the bottle
+        - Installing or updating a runtime or backend
+        - Building or testing Mallow from source
+        - Other
+
+  - type: input
+    id: program
+    attributes:
+      label: Windows program (if any)
+      description: Name, version, and where it came from.
+      placeholder: "Steam client, installed with the Steam recipe"
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: |
+        Paste the relevant part of the launch log, including its header (the lines starting with `#`). `mallow logs --bottle <name> --last` prints the latest log. Remove any personal information first.
+      render: text
+
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Output of `mallow doctor`
+      render: text
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Screenshots, workarounds you found, or whether this worked in an earlier version.

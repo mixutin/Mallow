@@ -1,0 +1,70 @@
+# SPDX-License-Identifier: 0BSD
+name: Feature request
+description: Suggest a new feature or an improvement.
+title: "[Feature]: "
+labels: ["type:feature", "status:needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea!
+
+        **Mallow is pre-alpha and in its design phase.** Before you ask, please look at the [roadmap and design](https://github.com/mixutin/Mallow/blob/main/docs/DESIGN.md). Your idea may already be planned.
+        - Still a rough idea? Start a [Discussion](https://github.com/mixutin/Mallow/discussions) instead.
+        - Big changes to the design go through an RFC (see [GOVERNANCE.md](https://github.com/mixutin/Mallow/blob/main/GOVERNANCE.md)).
+        - Some things are out of scope on purpose: working around anti-cheat, bundling or downloading D3DMetal, hosting Microsoft redistributables or fonts, Intel Macs, and Mac App Store distribution.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Describe the situation and why it's a problem. For example, "When I …, I can't …".
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like to happen?
+      description: Describe the behaviour you'd like. Mockups, example CLI commands or sample settings are welcome.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you've considered
+      description: Other ways to solve the problem, including workarounds you use today.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      multiple: true
+      options:
+        - MallowKit (the core library)
+        - mallow CLI
+        - Mallow app
+        - Wine runtime
+        - Graphics backends
+        - Sandbox and security
+        - Recipes
+        - Docs
+        - CI and releases
+        - Not sure
+
+  - type: textarea
+    id: security-licensing
+    attributes:
+      label: Security and licensing considerations
+      description: Would this weaken a security default, need network access, download something, or involve third-party code or content? Mallow's own code is 0BSD, so it can't include GPL code.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you submit
+      options:
+        - label: I searched existing issues and Discussions for this idea.
+          required: true
+        - label: I'd like to help build this.
+          required: false

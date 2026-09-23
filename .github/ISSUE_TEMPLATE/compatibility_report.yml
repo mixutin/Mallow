@@ -1,0 +1,186 @@
+# SPDX-License-Identifier: 0BSD
+name: Compatibility report
+description: Tell us how a Windows game or app runs in Mallow.
+title: "[Compat]: "
+labels: ["compat-report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing! One report covers **one game or app on one setup**.
+
+        **Mallow is pre-alpha**, so there are no releases to test yet. Reports from builds from source are welcome.
+
+        | Rating | Meaning |
+        |---|---|
+        | **Platinum** | Works perfectly, out of the box. No tweaks needed. |
+        | **Gold** | Works perfectly after some tweaks (a different graphics backend, a setting, a dependency). |
+        | **Silver** | Works, with minor issues that don't stop you playing or working. |
+        | **Bronze** | Starts, but with major issues. Hard to play or use. |
+        | **Borked** | Doesn't start, crashes, or is unusable. |
+
+        Never attach game files, product keys or D3DMetal files, and check logs for personal information before you paste them.
+
+  - type: input
+    id: software
+    attributes:
+      label: Game or app
+      description: The full name, as the store or publisher shows it.
+      placeholder: "Example Game: Deluxe Edition"
+    validations:
+      required: true
+
+  - type: input
+    id: software-version
+    attributes:
+      label: Game or app version
+      description: The version or build number, if you know it.
+      placeholder: "1.4.2"
+
+  - type: input
+    id: link
+    attributes:
+      label: Store page or website
+      placeholder: "https://store.steampowered.com/app/…"
+
+  - type: dropdown
+    id: store
+    attributes:
+      label: Store or source
+      options:
+        - Steam
+        - Epic Games Store
+        - GOG
+        - EA app
+        - Ubisoft Connect
+        - Battle.net
+        - itch.io
+        - Another launcher
+        - Standalone installer from the developer
+        - Disc or other physical media
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: rating
+    attributes:
+      label: Rating
+      options:
+        - Platinum (works perfectly, out of the box)
+        - Gold (works perfectly after tweaks)
+        - Silver (works with minor issues)
+        - Bronze (starts, but with major issues)
+        - Borked (doesn't start or is unusable)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: backend
+    attributes:
+      label: Graphics backend used
+      description: If you left it on Auto, tell us in the notes which backend it picked, if you know.
+      options:
+        - Auto
+        - D3DMetal (imported from Apple's Game Porting Toolkit)
+        - DXMT
+        - DXVK (via MoltenVK)
+        - wined3d
+        - Don't know
+    validations:
+      required: true
+
+  - type: dropdown
+    id: graphics-api
+    attributes:
+      label: Graphics API it uses
+      options:
+        - DirectX 12
+        - DirectX 11
+        - DirectX 10
+        - DirectX 9
+        - DirectX 8 or older
+        - OpenGL
+        - Vulkan
+        - Don't know
+
+  - type: dropdown
+    id: anti-cheat
+    attributes:
+      label: Does it use anti-cheat?
+      description: Mallow never works around anti-cheat. Games that need it usually can't run under Wine on macOS.
+      options:
+        - "No"
+        - "Yes"
+        - Don't know
+
+  - type: input
+    id: mallow-version
+    attributes:
+      label: Mallow version
+      description: The release version, or the commit hash if you built from source.
+      placeholder: "0.4.0 (git abc1234)"
+    validations:
+      required: true
+
+  - type: input
+    id: runtime-version
+    attributes:
+      label: Runtime version
+      placeholder: "mallow-runtime-11.0-r1"
+    validations:
+      required: true
+
+  - type: input
+    id: macos-version
+    attributes:
+      label: macOS version
+      placeholder: "macOS 26.5"
+    validations:
+      required: true
+
+  - type: input
+    id: mac-model
+    attributes:
+      label: Mac model
+      description: Model, chip and memory.
+      placeholder: "MacBook Pro (M4 Pro, 2024), 24 GB"
+    validations:
+      required: true
+
+  - type: textarea
+    id: tweaks
+    attributes:
+      label: Tweaks you used
+      description: Every change from the defaults, so others can repeat your result. For example settings, recipes, winetricks verbs, environment variables, DLL overrides and launch options. Write "None" if you changed nothing.
+      placeholder: |
+        - Backend set to DXMT for this game
+        - Advertise AVX turned on
+        - winetricks vcrun2022
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: What works and what doesn't. Include performance (frame rate, resolution, graphics settings), audio, controllers, online features and how long you played.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs (optional)
+      description: For Silver, Bronze or Borked, the relevant part of the launch log helps a lot. Remove personal information first.
+      render: text
+
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Confirmations
+      options:
+        - label: I own a legitimate copy of this game or app.
+          required: true
+        - label: I tested it with Mallow, not with CrossOver or another tool.
+          required: true

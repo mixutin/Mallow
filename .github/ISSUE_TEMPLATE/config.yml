@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: 0BSD
+blank_issues_enabled: false
+contact_links:
+  - name: Questions, ideas and design discussion
+    url: https://github.com/mixutin/Mallow/discussions
+    about: Ask questions and discuss ideas or the design in GitHub Discussions.
+  - name: Report a security vulnerability
+    url: https://github.com/mixutin/Mallow/security/advisories/new
+    about: Please report vulnerabilities privately here, never in a public issue.
+  - name: Documentation
+    url: https://mixutin.github.io/Mallow/
+    about: Read the Mallow documentation and devlog.

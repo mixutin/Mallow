@@ -1,0 +1,35 @@
+[
+  { "name": "type:bug", "color": "d73a4a", "description": "Something doesn't work as described" },
+  { "name": "type:feature", "color": "a2eeef", "description": "A new feature or an improvement" },
+  { "name": "type:docs", "color": "0075ca", "description": "Documentation, guides, the docs site or the devlog" },
+  { "name": "type:security", "color": "b60205", "description": "Security hardening (report vulnerabilities privately, see SECURITY.md)" },
+  { "name": "type:chore", "color": "c2e0c6", "description": "Maintenance, refactoring, tooling or dependency updates" },
+
+  { "name": "area:mallowkit", "color": "1d76db", "description": "MallowKit, the core Swift library" },
+  { "name": "area:cli", "color": "1d76db", "description": "The mallow command-line tool" },
+  { "name": "area:app", "color": "1d76db", "description": "The SwiftUI app" },
+  { "name": "area:runtime", "color": "1d76db", "description": "The Wine runtime, its build pipeline and our Wine patches" },
+  { "name": "area:graphics", "color": "1d76db", "description": "Graphics backends: D3DMetal, DXMT, DXVK, wined3d" },
+  { "name": "area:sandbox", "color": "1d76db", "description": "Seatbelt sandbox, trust modes and bottle hardening" },
+  { "name": "area:recipes", "color": "1d76db", "description": "Recipes, verbs, winetricks and download hosts" },
+  { "name": "area:docs", "color": "1d76db", "description": "The docs site, README and community files" },
+  { "name": "area:ci", "color": "1d76db", "description": "GitHub Actions, releases, signing and the catalog" },
+  { "name": "area:licensing", "color": "1d76db", "description": "Licences, provenance, notices and the clean-room rules" },
+
+  { "name": "priority:high", "color": "b60205", "description": "Needs attention soon" },
+  { "name": "priority:medium", "color": "d93f0b", "description": "Important, but not urgent" },
+  { "name": "priority:low", "color": "fbca04", "description": "Nice to have" },
+
+  { "name": "status:needs-triage", "color": "ededed", "description": "New, not yet looked at by a maintainer" },
+  { "name": "status:needs-info", "color": "fef2c0", "description": "Waiting for more information from the reporter" },
+  { "name": "status:blocked", "color": "5c5c5c", "description": "Blocked by another issue, a decision or an upstream change" },
+
+  { "name": "good first issue", "color": "7057ff", "description": "A good place to start contributing" },
+  { "name": "help wanted", "color": "008672", "description": "Maintainers would welcome help with this" },
+  { "name": "needs-design", "color": "5319e7", "description": "Needs a design decision or an RFC before work starts" },
+  { "name": "compat-report", "color": "0e8a16", "description": "How a Windows game or app runs in Mallow" },
+  { "name": "devlog", "color": "c5def5", "description": "A devlog post or devlog material" },
+  { "name": "upstream", "color": "bfdadc", "description": "The fix belongs in Wine, DXMT, DXVK, MoltenVK or another upstream project" },
+  { "name": "duplicate", "color": "cfd3d7", "description": "This issue or pull request already exists" },
+  { "name": "wontfix", "color": "ffffff", "description": "Out of scope or won't be worked on" }
+]

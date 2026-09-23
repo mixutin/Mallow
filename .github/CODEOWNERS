@@ -1,0 +1,85 @@
+# SPDX-License-Identifier: 0BSD
+#
+# Code owners for Mallow. See GOVERNANCE.md for who the maintainers are.
+#
+# GitHub uses the LAST matching pattern for each file, so the specific rules come after
+# the default. Today one maintainer owns everything. When new maintainers join, add
+# them here, and give every security-sensitive path below at least two owners.
+#
+# Security-sensitive paths need two approving reviews (CONTRIBUTING.md, "Security-sensitive
+# changes"). CODEOWNERS only requests reviews; it cannot require two of them. Maintainers
+# enforce the two-review rule, and the branch ruleset for `main` should require code owner
+# review.
+
+# Default owner for everything
+*                                                   @mixutin
+
+# ---------------------------------------------------------------------------
+# Security-sensitive: sandbox, trust modes and the security model
+# ---------------------------------------------------------------------------
+/docs/SECURITY_MODEL.md                             @mixutin
+/SECURITY.md                                        @mixutin
+*Sandbox*                                           @mixutin
+*Seatbelt*                                          @mixutin
+*.sb                                                @mixutin
+/scripts/redteam/                                   @mixutin
+/Tests/SecurityTests/                               @mixutin
+
+# Process spawning and environment construction
+/Sources/MallowKit/Launch/                          @mixutin
+/Sources/MallowKit/Support/PosixSpawner.swift       @mixutin
+/Sources/MallowKit/Support/ProcessSpawner.swift     @mixutin
+/Sources/MallowKit/Wine/WineEnvironment.swift       @mixutin
+
+# Prefix hardening when bottles are created
+/Sources/MallowKit/Operations/BottleCreator.swift   @mixutin
+/Sources/MallowKit/Bottles/BottleTemplate.swift     @mixutin
+
+# Downloads, signatures, installs and imports
+/Sources/MallowKit/Support/SignatureVerifier.swift     @mixutin
+/Sources/MallowKit/Support/TrustedKeys.swift          @mixutin
+/Sources/MallowKit/Support/CodeSignatureChecker.swift @mixutin
+/Sources/MallowKit/Support/ProvenanceGuard.swift      @mixutin
+/Sources/MallowKit/Support/ArchiveExtractor.swift     @mixutin
+/Sources/MallowKit/Support/Quarantine.swift           @mixutin
+/Sources/MallowKit/Support/HTTPClient.swift           @mixutin
+/Sources/MallowKit/Runtime/CatalogClient.swift        @mixutin
+/Sources/MallowKit/Runtime/ComponentInstaller.swift   @mixutin
+/Sources/MallowKit/Runtime/BuiltinComponents.swift    @mixutin
+/Sources/MallowKit/Runtime/StandardWineImporter.swift @mixutin
+/Sources/MallowKit/Graphics/GPTKImporter.swift        @mixutin
+/Sources/MallowKit/Operations/BottleImporter.swift    @mixutin
+
+# Recipes and download hosts
+/Sources/MallowKit/Recipes/RecipeRunner.swift       @mixutin
+/Sources/MallowKit/Recipes/RecipeValidator.swift    @mixutin
+/recipes/allowed-hosts.json                         @mixutin
+
+# Diagnostics (what is collected and redacted)
+/Sources/MallowKit/Diagnostics/DiagnosticsBundle.swift @mixutin
+
+# App surface: URL scheme, entitlements, CLI installer
+/Sources/MallowApp/URLRouter.swift                  @mixutin
+/Resources/Mallow.entitlements                      @mixutin
+/scripts/install-cli.sh                             @mixutin
+
+# ---------------------------------------------------------------------------
+# Security-sensitive: CI, release, signing and the runtime
+# ---------------------------------------------------------------------------
+/.github/workflows/                                 @mixutin
+/.github/CODEOWNERS                                 @mixutin
+/catalog/                                           @mixutin
+/runtime/                                           @mixutin
+/scripts/build-app.sh                               @mixutin
+/scripts/verify-app-bundle.sh                       @mixutin
+
+# ---------------------------------------------------------------------------
+# Licensing and governance
+# ---------------------------------------------------------------------------
+/LICENSE                                            @mixutin
+/NOTICE                                             @mixutin
+/THIRD_PARTY_LICENSES.md                            @mixutin
+/recipes/LICENSE                                    @mixutin
+/schemas/LICENSE                                    @mixutin
+/GOVERNANCE.md                                      @mixutin
+/CODE_OF_CONDUCT.md                                 @mixutin
