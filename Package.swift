@@ -3,16 +3,17 @@
 import PackageDescription
 
 let common: [SwiftSetting] = [.enableUpcomingFeature("InferIsolatedConformances")]
-
-let package = Package(
-  name: "Mallow",
-  platforms: [.macOS(.v15)],
-  products: [.library(name: "MallowKit", targets: ["MallowKit"])],
-  targets: [
-    .target(name: "MallowKit", swiftSettings: common),
-    .testTarget(
-      name: "MallowKitTests", dependencies: ["MallowKit"],
-      exclude: ["Fixtures"], swiftSettings: common
-    ),
-  ]
-)
+var products: [Product] = [
+  .library(name: "MallowKit", targets: ["MallowKit"]),
+  .executable(name: "mallow", targets: ["MallowCLI"]),
+]
+var targets: [Target] = [
+  .target(name: "MallowKit", swiftSettings: common),
+  .executableTarget(name: "MallowCLI", dependencies: ["MallowKit"], swiftSettings: common),
+  .testTarget(name: "MallowKitTests", dependencies: ["MallowKit"], exclude: ["Fixtures"], swiftSettings: common),
+]
+#if os(macOS)
+products.append(.executable(name: "MallowApp", targets: ["MallowApp"]))
+targets.append(.executableTarget(name: "MallowApp", dependencies: ["MallowKit"], swiftSettings: common))
+#endif
+let package = Package(name: "Mallow", platforms: [.macOS(.v15)], products: products, targets: targets)

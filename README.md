@@ -2,14 +2,34 @@
 
 # Mallow
 
-**Run Windows games and apps on your Apple Silicon Mac. Free, open source, and sandboxed by default.**
+**An open-source project to run Windows games and apps on your Apple Silicon Mac, with sandboxing by default.**
 
-Mallow is an open-source alternative to CrossOver. It will combine Wine, Rosetta 2 and DirectX-to-Metal translation with a native Mac app, a scriptable command-line tool, and a kernel sandbox around every Windows program.
+Mallow is an open-source alternative to CrossOver in early development. It will combine Wine, Rosetta 2 and DirectX-to-Metal translation with a native Mac app, a scriptable command-line tool, and a kernel sandbox around every Windows program.
 
-[![Status: pre-alpha, design phase](https://img.shields.io/badge/status-pre--alpha%20%C2%B7%20design%20phase-orange)](https://github.com/mixutin/Mallow/blob/main/ROADMAP.md)
+[![Status: pre-alpha, foundations](https://img.shields.io/badge/status-pre--alpha%20%C2%B7%20foundations-orange)](https://github.com/mixutin/Mallow/blob/main/ROADMAP.md)
 [![Licence: 0BSD](https://img.shields.io/badge/licence-0BSD-blue)](https://github.com/mixutin/Mallow/blob/main/LICENSE)
 
-> **🚧 Pre-alpha: design phase.** No application code exists yet, so there is nothing to download or run. Everything on this page describes what Mallow is **planned** to do, based on the [design document](https://github.com/mixutin/Mallow/blob/main/docs/DESIGN.md) and the [security model](https://github.com/mixutin/Mallow/blob/main/docs/SECURITY_MODEL.md). Plans may change. If you need to run Windows software on a Mac today, see the comparison further down this page for tools that work now.
+> **🚧 Pre-alpha: foundations in progress.** The first `MallowKit` library code and tests are on `main`. There is **no runnable Mallow app, CLI or Wine runtime yet**, and sandbox enforcement is not implemented. Features below remain planned unless explicitly listed as implemented. The [design document](https://github.com/mixutin/Mallow/blob/main/docs/DESIGN.md) and [security model](https://github.com/mixutin/Mallow/blob/main/docs/SECURITY_MODEL.md) describe the intended product, not a released one.
+
+## What works today
+
+[PR #41](https://github.com/mixutin/Mallow/pull/41), merged on 26 September 2026, adds a dependency-free SwiftPM library, shared wire-coding/default/path helpers, the bottle-settings value types, `ProgramSource`, and atomic JSON persistence. It includes 19 checked-in JSON fixtures and 22 swift-testing tests across three suites. The implementation PR passed the macOS Apple Silicon build/test job and the JSON/YAML/SPDX checks; debug and release builds/tests were also run on Linux.
+
+This is **partial WF0**, the shared-data-format foundation. It does not complete the bottle/program models, schema-safe stores, locking, runtime installation or launching. `SandboxSettings` is only configuration; it does not protect your files. [Issue #9](https://github.com/mixutin/Mallow/issues/9) tracks the remaining WF0 work.
+
+### Build the current foundation
+
+With Swift 6.2 or newer available (the design's development target remains Swift 6.3):
+
+```sh
+git clone https://github.com/mixutin/Mallow.git
+cd Mallow
+swift build
+scripts/test.sh
+scripts/test.sh -c release
+```
+
+These commands build and test **the library only**. They do not produce a `mallow` executable or a Mac app. Wine and Rosetta are not needed for the current tests. See the [development guide](https://mixutin.github.io/Mallow/contributing/dev-setup/) for the current workflow and the separate, planned app/CLI workflow.
 
 ## What Mallow will do
 
@@ -94,11 +114,11 @@ A short, factual comparison, based on each project's public information as of Se
 
 | | **Mallow** | **CrossOver** | **Whisky** | **Heroic Games Launcher** | **Plain Wine** |
 |---|---|---|---|---|---|
-| What it is | Mac app and CLI for Windows games and apps | Commercial app for Windows apps and games | Free Mac app for Windows games | Launcher for Epic, GOG and Amazon games | The compatibility layer itself, used from Terminal |
-| Status | Pre-alpha, design phase | Mature, actively developed | Archived in 2025; community forks continue | Actively developed | Actively developed |
+| What it is | Planned Mac app and CLI for Windows games and apps; initial library implemented | Commercial app for Windows apps and games | Free Mac app for Windows games | Launcher for Epic, GOG and Amazon games | The compatibility layer itself, used from Terminal |
+| Status | Pre-alpha, foundations in progress | Mature, actively developed | Archived in 2025; community forks continue | Actively developed | Actively developed |
 | Cost | Free | Paid, with a free trial | Free | Free | Free |
-| Licence | 0BSD (runtime LGPL-2.1-or-later) | Proprietary; CodeWeavers publishes its Wine changes under the LGPL | GPL-3.0 | GPL-3.0 | LGPL-2.1-or-later |
-| Runs on | Apple Silicon Macs | macOS and Linux | Apple Silicon Macs | Windows, macOS and Linux | macOS, Linux and more |
+| Licence | 0BSD (planned runtime LGPL-2.1-or-later) | Proprietary; CodeWeavers publishes its Wine changes under the LGPL | GPL-3.0 | GPL-3.0 | LGPL-2.1-or-later |
+| Runs on | Planned for Apple Silicon Macs | macOS and Linux | Apple Silicon Macs | Windows, macOS and Linux | macOS, Linux and more |
 | DirectX 12 through D3DMetal | Planned; you import your own copy | Included | Included | Depends on the Wine build you choose | No |
 | Kernel sandbox around Windows programs | Planned, on by default | Not advertised | Not advertised | Not advertised | No (Wine is not a sandbox) |
 | Support | Community | Included with purchase | None (archived) | Community | Community |
@@ -109,12 +129,12 @@ Other open-source projects in this space include [Mythic](https://github.com/Myt
 
 ## 🗺️ Roadmap
 
-Mallow will be built in small milestones. Every feature lands in the core library and the CLI before it gets a user interface.
+Mallow is being built in small milestones. Every feature lands in the core library and the CLI before it gets a user interface. The owner authorized the initial foundation merge while unfinished G0 items remain tracked; this does not declare G0 or v0.1 complete.
 
 | Milestone | Focus |
 |---|---|
-| G0: Design sign-off | Before any code: name clearance, governance, licence files, contribution rules |
-| v0.1: Foundations | Bottles, the CLI, the launch pipeline, secure-by-default bottles, a pinned standard Wine build |
+| G0: Design sign-off | Outstanding name clearance, governance, licence and contribution-rule work |
+| v0.1: Foundations — in progress | Partial WF0 is implemented; bottles, the CLI, launch pipeline, secure-by-default bottles and a pinned Wine build remain planned |
 | v0.2: Own runtime | The Mallow Runtime built in public CI, signed catalog, DXMT, DXVK, MSync |
 | v0.3: Mac app | The SwiftUI app, guided setup, log viewer, Homebrew tap |
 | v0.4: Steam and dependencies | One-click Steam, recipes, winetricks |
@@ -124,21 +144,23 @@ Mallow will be built in small milestones. Every feature lands in the core librar
 | v0.9: Import and community | Importing existing Wine prefixes, a community recipe repository |
 | v1.0 | Release criteria met, including at least two maintainers, a complete licence audit and legal review |
 
-Security work runs alongside these milestones, from secure-by-default bottles in v0.1 to an external security review for 1.0. See [ROADMAP.md](https://github.com/mixutin/Mallow/blob/main/ROADMAP.md) for details and the security model's [hardening roadmap](https://github.com/mixutin/Mallow/blob/main/docs/SECURITY_MODEL.md) for the security milestones. There are no release dates yet.
+Security work runs alongside these milestones, from secure-by-default bottles in v0.1 to an external security review for 1.0. See [ROADMAP.md](https://github.com/mixutin/Mallow/blob/main/ROADMAP.md) for implementation progress and the security model's [hardening roadmap](https://github.com/mixutin/Mallow/blob/main/docs/SECURITY_MODEL.md) for the security milestones. There are no release dates yet.
 
 ## 🤝 Get involved
 
-Mallow is at the best stage for shaping its design. Reviews, questions and ideas are all welcome.
+Mallow is at an early stage where both implementation and design review are useful.
 
+- **Build and test the foundation.** Use the commands above, then help finish the models and fixtures in [WF0, issue #9](https://github.com/mixutin/Mallow/issues/9).
 - **Discuss the design.** Read the [design document](https://github.com/mixutin/Mallow/blob/main/docs/DESIGN.md) and the [security model](https://github.com/mixutin/Mallow/blob/main/docs/SECURITY_MODEL.md), then join [GitHub Discussions](https://github.com/mixutin/Mallow/discussions) or [open an issue](https://github.com/mixutin/Mallow/issues).
 - **Follow progress.** The [devlog](https://mixutin.github.io/Mallow/blog/) shares decisions, research and progress, including the parts that don't go to plan. It also has an [RSS feed](https://mixutin.github.io/Mallow/feed_rss_created.xml).
 - **Contribute.** Start with [CONTRIBUTING.md](https://github.com/mixutin/Mallow/blob/main/CONTRIBUTING.md), and please follow the [Code of Conduct](https://github.com/mixutin/Mallow/blob/main/CODE_OF_CONDUCT.md). In short:
   - Sign off every commit with the [Developer Certificate of Origin](https://developercertificate.org/) (`git commit -s`).
   - Follow the clean-room rules. Never copy files from CrossOver. Never copy code from GPL projects such as Whisky, Heroic, Bottles or Mythic into Mallow's 0BSD code. Learning from their ideas is fine; the code must be your own.
+  - Keep documentation, the changelog, the roadmap and affected website pages synchronized in the same change. Repository-agent instructions live in [AGENTS.md](https://github.com/mixutin/Mallow/blob/main/AGENTS.md).
   - Send fixes upstream to Wine, DXMT, MoltenVK and winetricks where possible.
 - **Report security problems privately.** Follow [SECURITY.md](https://github.com/mixutin/Mallow/blob/main/SECURITY.md) instead of opening a public issue.
 
-**Planned toolchain.** Swift 6.3 with the Command Line Tools only (`xcode-select --install`), so Xcode is not needed. The project uses Swift Package Manager and swift-testing. A script assembles the `.app` bundle, and most tests run against a fake Wine, so day-to-day work needs neither Xcode nor a real Wine runtime. The Wine runtime itself will be built in public GitHub Actions from CodeWeavers' published LGPL Wine sources.
+**Toolchain.** The current library uses a Swift tools version of 6.2 and swift-testing, with no third-party package dependencies. The full design targets Swift 6.3 with the Command Line Tools only. App assembly scripts, the CLI and `fake-wine` remain planned; the current tests exercise only the implemented library. The Wine runtime itself will be built in public GitHub Actions from CodeWeavers' published LGPL Wine sources.
 
 ## Documentation
 
@@ -158,18 +180,18 @@ Mallow is at the best stage for shaping its design. Reviews, questions and ideas
 
 Mallow's own code, scripts and documentation are released under the [BSD Zero Clause License (0BSD)](https://github.com/mixutin/Mallow/blob/main/LICENSE). You may use, copy, modify, sell and redistribute them for any purpose, commercial use included. No attribution is required.
 
-Other parts keep their own licences:
+Other parts keep their own licences. Except for the implemented MallowKit library and tests, the components below describe the planned distribution:
 
 | Part | Licence | Notes |
 |---|---|---|
-| Mallow app, `mallow` CLI, MallowKit, scripts, docs | 0BSD | |
-| Mallow Runtime (Wine) | LGPL-2.1-or-later | A separate download, not part of the app. Every runtime release comes with its complete source. |
+| Mallow app, `mallow` CLI, MallowKit, scripts, docs | 0BSD | App and CLI not implemented yet |
+| Mallow Runtime (Wine) | LGPL-2.1-or-later | A separate download, not part of the app. Every runtime release will come with its complete source. |
 | Our Wine patches (`runtime/patches/`) | LGPL-2.1-or-later | They modify Wine, so they share its licence. |
 | Recipes and JSON schemas | CC0-1.0 | Free for any tool to reuse. |
 | DXMT | MIT up to v0.80, LGPL-2.1-or-later after | Separate backend download, with its licence texts. |
 | DXVK-macOS | zlib | Separate backend download, with its licence text. |
 | MoltenVK | Apache-2.0 | Included in the runtime, with its licence texts. |
-| swift-argument-parser; Sparkle (from v0.8) | Apache-2.0; MIT with extra notices | Listed in [THIRD_PARTY_LICENSES.md](https://github.com/mixutin/Mallow/blob/main/THIRD_PARTY_LICENSES.md). |
+| swift-argument-parser; Sparkle (from v0.8) | Apache-2.0; MIT with extra notices | Planned dependencies; see [THIRD_PARTY_LICENSES.md](https://github.com/mixutin/Mallow/blob/main/THIRD_PARTY_LICENSES.md). |
 | D3DMetal (Apple Game Porting Toolkit) | Apple proprietary | Never bundled, downloaded or hosted by Mallow. You import your own copy and accept Apple's licence. |
 | Steam, Microsoft redistributables, fonts | Each vendor's terms | Downloaded from the vendor, or from a named mirror, only after you have seen the terms. Never hosted by Mallow. |
 
