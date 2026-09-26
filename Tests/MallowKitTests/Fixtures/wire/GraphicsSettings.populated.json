@@ -1,0 +1,31 @@
+{
+  "autoImageRules" : true,
+  "backend" : "dxmt",
+  "d3dmetal" : {
+    "dxr" : false,
+    "metalFX" : true,
+    "nvapi" : true
+  },
+  "dxmt" : {
+    "metalFXSpatial" : true,
+    "nvext" : true,
+    "spatialUpscaleFactor" : 1.5
+  },
+  "dxvk" : {
+    "async" : false,
+    "hud" : "fps"
+  },
+  "hideD3D12" : false,
+  "imageOverrides" : [
+    {
+      "backend" : "wined3d",
+      "match" : "steam.exe"
+    }
+  ],
+  "metalHUD" : false,
+  "preferD3DMetalForD3D11" : false,
+  "wined3d" : {
+    "csmt" : false,
+    "renderer" : "vulkan"
+  }
+}

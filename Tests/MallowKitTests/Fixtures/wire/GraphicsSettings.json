@@ -1,0 +1,24 @@
+{
+  "autoImageRules" : true,
+  "backend" : "auto",
+  "d3dmetal" : {
+    "metalFX" : false,
+    "nvapi" : false
+  },
+  "dxmt" : {
+    "metalFXSpatial" : false,
+    "nvext" : false
+  },
+  "dxvk" : {
+    "async" : true
+  },
+  "imageOverrides" : [
+
+  ],
+  "metalHUD" : false,
+  "preferD3DMetalForD3D11" : false,
+  "wined3d" : {
+    "csmt" : true,
+    "renderer" : "gl"
+  }
+}
