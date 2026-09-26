@@ -1,31 +1,19 @@
 # SPDX-License-Identifier: 0BSD
-#
-# Documentation site for Mallow: https://mixutin.github.io/Mallow/
-# Generator: MkDocs 1.6 + Material for MkDocs 9.7 (pinned in requirements-docs.txt).
-# Preview locally:  pip install -r requirements-docs.txt && mkdocs serve
-# CI builds with:   mkdocs build --strict   (.github/workflows/docs.yml)
-#
-# Material for MkDocs has been in maintenance mode since November 2025 (critical
-# bug and security fixes promised for at least 12 months from then).
-# Its successor, Zensical, reads this same file, so a later move should need
-# few changes. See docs/contributing/writing-docs.md.
-
+# Documentation site for Mallow. Versions are pinned in requirements-docs.txt.
+# Preview with mkdocs serve; CI builds with mkdocs build --strict.
 site_name: Mallow
 site_description: >-
-  An open-source way to run Windows games and apps on Apple Silicon Macs,
-  using Wine, Rosetta 2 and DirectX-to-Metal translation. Pre-alpha, in design.
+  Mallow development previews for Apple Silicon. Test native onboarding and
+  verified dependency acquisition; Windows launching is not implemented yet.
 site_author: Mixutin and the Mallow contributors
 site_url: https://mixutin.github.io/Mallow/
-
 repo_name: mixutin/Mallow
 repo_url: https://github.com/mixutin/Mallow
 edit_uri: edit/main/docs/
-
 copyright: >-
   Copyright &copy; 2026 Mixutin and the Mallow contributors ·
   <a href="https://github.com/mixutin/Mallow/blob/main/LICENSE">0BSD</a> ·
   Not affiliated with CodeWeavers, Apple, Microsoft or Valve.
-
 docs_dir: docs
 
 theme:
@@ -37,10 +25,8 @@ theme:
     repo: fontawesome/brands/github
     edit: material/pencil
     view: material/eye
-  # System fonts: no requests to Google Fonts, and San Francisco on Macs.
   font: false
   palette:
-    # Follow the system setting until the reader picks a scheme.
     - media: "(prefers-color-scheme)"
       toggle:
         icon: material/brightness-auto
@@ -77,13 +63,15 @@ theme:
 
 nav:
   - Home: index.md
-  - How it works: how-it-works.md
   - Getting started: getting-started.md
+  - Development previews: development-preview.md
+  - How it works: how-it-works.md
   - Devlog:
       - blog/index.md
   - Roadmap: roadmap.md
   - Design:
       - Architecture (DESIGN.md): DESIGN.md
+      - Bootstrap addendum: BOOTSTRAP.md
       - Security model: SECURITY_MODEL.md
   - Contributing:
       - contributing/index.md
@@ -96,7 +84,6 @@ nav:
 plugins:
   - search:
       lang: en
-  # The devlog. Posts live in docs/blog/posts/, authors in docs/blog/.authors.yml.
   - blog:
       blog_dir: blog
       blog_toc: true
@@ -120,8 +107,6 @@ plugins:
       draft: false
       draft_on_serve: true
       draft_if_future_date: true
-  # RSS feed of the devlog: /feed_rss_created.xml. Dates come from each post's
-  # one-line `date: YYYY-MM-DD` front matter, so the build needs no git history.
   - rss:
       match_path: blog/posts/.*
       use_git: false
@@ -156,8 +141,6 @@ markdown_extensions:
   - toc:
       permalink: true
       permalink_title: Link to this section
-  # CommonMark-style emphasis, so stray `*` and `_` (globs, identifiers) in the
-  # design docs don't turn into italics.
   - pymdownx.betterem:
       smart_enable: all
   - pymdownx.details
@@ -169,9 +152,7 @@ markdown_extensions:
   - pymdownx.keys
   - pymdownx.magiclink
   - pymdownx.mark
-  # Lets a page embed a root-level file, e.g. a line containing only
-  # --8<-- "ROADMAP.md". Paths are relative to the repository root, and a
-  # missing file fails the build.
+  # The website embeds ROADMAP.md: progress has one source of truth.
   - pymdownx.snippets:
       base_path: ["."]
       check_paths: true
@@ -190,7 +171,6 @@ markdown_extensions:
 
 extra_css:
   - stylesheets/extra.css
-
 extra:
   generator: true
   social:
