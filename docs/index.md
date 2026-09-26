@@ -1,7 +1,7 @@
 ---
 # SPDX-License-Identifier: 0BSD
 title: Home
-description: Mallow is an open-source way to run Windows games and apps on Apple Silicon Macs, sandboxed by default and free for any use. Pre-alpha, in design.
+description: Mallow development previews for Apple Silicon. Test native onboarding and verified dependency acquisition; Windows launching is not implemented yet.
 hide:
   - navigation
   - toc
@@ -11,103 +11,78 @@ hide:
 
 ![](assets/favicon.svg){ .mallow-hero__icon }
 
-<span class="mallow-status">Pre-alpha · design phase</span>
+<span class="mallow-status">Pre-alpha · development setup preview</span>
 
 # Mallow
 
 <p class="mallow-hero__tagline">
-Run Windows games and apps on your Apple Silicon Mac. Open source, sandboxed by default, and free for any use.
+Building an open-source way to run Windows games and apps on your Apple Silicon Mac.
 </p>
 
-[How it works](how-it-works.md){ .md-button .md-button--primary }
+[Get a development build](development-preview.md){ .md-button .md-button--primary }
+[Follow the roadmap](roadmap.md){ .md-button }
 [Read the devlog](blog/index.md){ .md-button }
-[Contribute](contributing/index.md){ .md-button }
 
 </div>
 
-!!! warning "There is nothing to install yet"
+!!! warning "A testable setup app, not a Windows launcher yet"
 
-    Mallow is in the **design phase**. No application code exists yet. Everything on this site describes what we **plan** to build, not features that work today. The [roadmap](roadmap.md) shows the order we will build things in, and the [devlog](blog/index.md) is where progress gets posted.
+    Mallow has a native onboarding app, a bootstrap CLI and library foundations. You can test prerequisite checks and consent-gated dependency acquisition. **Wine activation, bottles, graphics translation and the kernel sandbox are not implemented. This build cannot run Windows programs.**
 
-## What Mallow will be
-
-Mallow is a planned open-source alternative to CrossOver. It will run Windows programs on Macs with Apple Silicon, using three proven pieces:
-
-- **[Wine](how-it-works.md#wine-a-translator-not-an-emulator)**, which reimplements the Windows APIs on top of macOS;
-- **[Rosetta 2](how-it-works.md#rosetta-2-intel-code-on-apple-silicon)**, which translates Intel (x86_64) code for Apple Silicon;
-- **[DirectX-to-Metal translation](how-it-works.md#graphics-from-directx-to-metal)** (D3DMetal, DXMT, DXVK with MoltenVK, or Wine's own wined3d), so games can draw with your Mac's GPU.
-
-It will ship as a native Mac app and a scriptable `mallow` command-line tool. Both sit on the same Swift library, so anything the app can do, the CLI can do too.
+## What you can test now
 
 <div class="grid cards" markdown>
 
--   :material-shield-lock-outline:{ .lg .middle } **Sandboxed by default**
+-   :material-apple:{ .lg .middle } **Native onboarding**
 
     ---
 
-    Every Windows program is planned to run inside a macOS kernel sandbox. By default it can see only its own bottle: no `Z:` drive, and no links into your home folder. An **Untrusted** mode runs suspicious programs in a throwaway copy of a bottle.
+    Inspect your Mac and Rosetta status, review setup choices, watch progress, cancel an operation and copy a build-specific test report.
 
-    [:octicons-arrow-right-24: Security model](SECURITY_MODEL.md)
+    [:octicons-arrow-right-24: Mac testing checklist](development-preview.md#test-on-your-mac)
 
--   :material-scale-balance:{ .lg .middle } **0BSD: use it for anything**
-
-    ---
-
-    Mallow's own code, scripts and docs are 0BSD. You may use, change, sell and redistribute them, with no attribution required. The Wine runtime stays LGPL, and its source is published with every release.
-
-    [:octicons-arrow-right-24: Legal & licensing](legal.md)
-
--   :material-source-branch:{ .lg .middle } **Built in the open**
+-   :material-download:{ .lg .middle } **Verified acquisition**
 
     ---
 
-    The Wine runtime will be built in public GitHub Actions from CodeWeavers' published LGPL Wine sources, then signed. Anyone can audit it or rebuild it.
+    After approval, acquire the pinned Wine archive over HTTPS and verify its size and SHA-256. Request Rosetta through Apple's installer only after accepting its licence. A cached archive is not an installed runtime.
 
-    [:octicons-arrow-right-24: How it works](how-it-works.md#the-mallow-runtime)
+    [:octicons-arrow-right-24: First-run setup](development-preview.md#first-run-setup)
 
--   :material-gamepad-variant-outline:{ .lg .middle } **The right graphics path per game**
-
-    ---
-
-    Mallow is designed to pick a graphics backend for each game, and with the Mallow Runtime that choice holds even when Steam starts the game. You can always override it. D3DMetal is supported if you import your own copy from Apple.
-
-    [:octicons-arrow-right-24: Graphics backends](how-it-works.md#graphics-from-directx-to-metal)
-
--   :material-console-line:{ .lg .middle } **CLI first**
+-   :material-source-branch:{ .lg .middle } **Commit-addressed builds**
 
     ---
 
-    Every feature lands in the library and the `mallow` CLI before it gets a button in the app. It has JSON output and stable exit codes, so you can use it in scripts.
+    Successful main-branch app workflows publish development prereleases with the source revision, app ZIP and checksum. PR artifacts are separate and cannot publish releases.
 
-    [:octicons-arrow-right-24: Architecture tour](contributing/architecture-tour.md)
+    [:octicons-arrow-right-24: Development releases](https://github.com/mixutin/Mallow/releases)
 
--   :material-hand-heart-outline:{ .lg .middle } **Upstream first**
+-   :material-console-line:{ .lg .middle } **Shared library and CLI**
 
     ---
 
-    Fixes go back to Wine, DXMT, MoltenVK and winetricks wherever possible. Every release will list its upstream contributions.
+    The app and limited `doctor`/`setup` CLI use the same setup service. Wire-format and persistence tests form the starting point for future bottle and runtime work.
 
-    [:octicons-arrow-right-24: Contributing](contributing/index.md)
+    [:octicons-arrow-right-24: Build from source](contributing/dev-setup.md)
 
 </div>
 
-## Where things stand
+## What the checks mean
 
-| | |
-|---|---|
-| **Status** | Pre-alpha. The design is written; code has not started. |
-| **Next step** | Gate G0: name clearance, licence files, governance. Then v0.1 "Foundations", a CLI-only build for developers. |
-| **First app for everyone** | Planned for v0.3 "Mac app". |
-| **Platform** | Apple Silicon Macs with macOS 15 or later. Intel Macs are not supported. |
+The initial app revision passed 37 unit tests, release compilation, bundle checks and executable startup on macOS Apple Silicon CI. **Those are not graphical usability or game-compatibility tests.** Real-Mac GUI, network and Apple-installer results are recorded separately against the build revision in [issue #42](https://github.com/mixutin/Mallow/issues/42). Use the [preview guide](development-preview.md) before testing.
 
-The [roadmap](roadmap.md) has the details, and the [design document](DESIGN.md) explains every decision behind them.
+The development app is ad-hoc signed, not Developer ID signed or notarised. It is intended for testing and does not claim production readiness.
+
+## What Mallow will become
+
+The [design](DESIGN.md) describes bottles, a verified open Wine runtime, per-program graphics choices, explicit file sharing and a kernel sandbox around Windows programs. The full app and CLI will share MallowKit. [How it works](how-it-works.md) explains the intended stack; the [security model](SECURITY_MODEL.md) explains the intended boundary and limitations.
+
+The early preview does not waive those requirements. See the [bootstrap addendum](BOOTSTRAP.md) for what was brought forward for testing and the [roadmap](roadmap.md) for what remains.
 
 ## Get involved
 
-Mallow is at the stage where reading and questioning the design is the most useful thing anyone can do. Start with the [architecture tour](contributing/architecture-tour.md), then read the [contributing guide](contributing/index.md). Contributions use a [DCO](https://developercertificate.org/) sign-off (`git commit -s`).
+Test the development build on your Mac, finish a shared-model task, improve the docs or verify a design assumption. Read the [contributor guide](contributing/index.md). Every implementation change includes documentation and roadmap review, so this site should describe the code that actually exists.
 
-## Standing on the shoulders of others
+Mallow's own code, scripts and docs are 0BSD. The planned Wine runtime and other components keep their own licences. See [Legal & licensing](legal.md), [NOTICE](https://github.com/mixutin/Mallow/blob/main/NOTICE) and the [security reporting instructions](https://github.com/mixutin/Mallow/blob/main/SECURITY.md).
 
-Mallow would not be possible without the [Wine](https://www.winehq.org/) project and its contributors. CodeWeavers funds much of Wine's macOS work and publishes the LGPL sources our runtime is built from. [DXMT](https://github.com/3Shain/dxmt), [DXVK-macOS](https://github.com/Gcenx/DXVK-macOS), [MoltenVK](https://github.com/KhronosGroup/MoltenVK) and Gcenx's macOS Wine builds do much of the heavy lifting. Earlier frontends such as Whisky showed what a good Mac experience looks like. We learn from their ideas and write our own code.
-
-Mallow is an independent project. It is not affiliated with or endorsed by CodeWeavers, Apple, Microsoft or Valve. "CrossOver" is a trademark of CodeWeavers, and we use it here only to describe what Mallow is an alternative to.
+Mallow is independent and is not affiliated with or endorsed by CodeWeavers, Apple, Microsoft, Valve or the Wine project. Names are used descriptively; trademarks remain with their owners.

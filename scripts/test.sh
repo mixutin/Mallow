@@ -1,9 +1,9 @@
 #!/bin/bash
 # SPDX-License-Identifier: 0BSD
 set -euo pipefail
-
 cd "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-# WF0 has no executable targets yet. Do not introduce fake launch commands.
+# Builds the library, the bootstrap CLI, and the native app target on macOS.
+# fake-wine and Windows-launch integration tests are not implemented yet.
 swift build
-# Explicitly disable XCTest so this entry point also works with Command Line Tools.
+export MALLOW_CLI="$(swift build --show-bin-path)/mallow"
 swift test --disable-xctest --enable-swift-testing "$@"

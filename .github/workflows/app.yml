@@ -1,0 +1,97 @@
+# SPDX-License-Identifier: 0BSD
+name: Development app
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: development-app-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+defaults:
+  run:
+    shell: bash
+jobs:
+  build:
+    name: Build and verify Apple Silicon app
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Test the exact source
+        run: |
+          swift --version
+          scripts/test.sh
+      - name: Build the development bundle
+        env:
+          MALLOW_SOURCE_REVISION: ${{ github.sha }}
+          MALLOW_BUILD_NUMBER: ${{ github.run_number }}
+        run: |
+          scripts/build-app.sh
+          scripts/verify-app-bundle.sh dist/Mallow-macos-arm64.zip
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: Mallow-macos-arm64
+          path: |
+            dist/Mallow-macos-arm64.zip
+            dist/SHA256SUMS
+            dist/build-info.json
+          if-no-files-found: error
+          retention-days: 14
+  publish:
+    name: Publish development prerelease
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && github.repository == 'mixutin/Mallow'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: Mallow-macos-arm64
+          path: dist
+      - name: Verify and publish immutable preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          cd dist
+          sha256sum --check SHA256SUMS
+          TAG="dev-${SOURCE_SHA:0:12}"
+          if gh release view "$TAG" --json isDraft --jq '.isDraft' > existing.txt 2>/dev/null; then
+            if grep -qx false existing.txt; then
+              echo "The immutable preview already exists; leaving it unchanged."
+              exit 0
+            fi
+            echo "An incomplete draft exists. Inspect it before retrying publication." >&2
+            exit 1
+          fi
+          cat > notes.md <<NOTES
+          Development preview from source commit $SOURCE_SHA.
+
+          Download Mallow-macos-arm64.zip, verify it against SHA256SUMS, unzip, and move Mallow.app to Applications.
+          Requires Apple Silicon and macOS 15 or later. This is ad-hoc signed, not Developer ID signed or notarised.
+          macOS may require a per-app approval in System Settings > Privacy & Security. Do not disable Gatekeeper globally.
+
+          Available for testing: native onboarding, prerequisite checks, consent-gated Rosetta installation, and
+          HTTPS/SHA-256 verified acquisition of the pinned Wine archive. Nothing downloads merely by opening the app.
+          The downloaded archive is NOT an activated runtime. GStreamer setup, bottles, sandboxing and Windows
+          launching are NOT implemented. D3DMetal is never downloaded or bundled.
+
+          CI checks compilation, unit tests, the bundle, architecture and executable startup. It does not establish
+          graphical usability, successful Apple installation/download on your network, or game compatibility.
+          Use Copy test report in the app and record actual Mac results in issue #42.
+          The bootstrap CLI is inside Mallow.app/Contents/Helpers/mallow.
+
+          This is an owner-requested development preview, not completion of v0.1/v0.3 or a production release.
+          NOTES
+          gh release create "$TAG" Mallow-macos-arm64.zip SHA256SUMS build-info.json \
+            --target "$SOURCE_SHA" --title "Mallow development ${SOURCE_SHA:0:12}" \
+            --notes-file notes.md --draft --prerelease --latest=false
+          gh release edit "$TAG" --draft=false --latest=false

@@ -8,7 +8,11 @@
 
 ## How was it tested?
 
-<!-- The commands you ran (for example `scripts/test.sh`), and your macOS version and Mac model if it matters. For docs, say whether you previewed the site. -->
+<!-- The commands you ran (for example `scripts/test.sh`), and your macOS version and Mac model if it matters. For docs, say whether you previewed the site. Distinguish local checks from CI and list checks not run. -->
+
+## Documentation, roadmap and website
+
+<!-- Required for every change. List the affected README/docs pages, CHANGELOG.md and ROADMAP.md updates. Explain explicitly when a surface has no impact. docs/roadmap.md embeds ROADMAP.md; do not duplicate its status. For a main-branch merge, record the Docs strict-build and Pages deployment outcome in a follow-up comment. -->
 
 ## Security impact
 
@@ -25,9 +29,11 @@ Never describe an undisclosed vulnerability here. Report it privately (SECURITY.
 <!-- Tick what applies. Strike through (~~like this~~) any item that doesn't apply. See CONTRIBUTING.md for details. -->
 
 - [ ] **DCO:** every commit is signed off (`git commit -s`).
-- [ ] **Tests:** added or updated (unit, `fake-wine` integration or golden tests), with no network access in unit tests. `scripts/test.sh` and `scripts/lint.sh` pass.
+- [ ] **Tests:** added or updated (unit, `fake-wine` integration or golden tests), with no network access in unit tests. Applicable tests and lint checks pass; unavailable checks are listed above.
 - [ ] **Generated files:** regenerated where needed (golden files with `MALLOW_UPDATE_GOLDENS=1`, built-in recipes, third-party licences), in a separate commit, and every golden change is explained above.
-- [ ] **Docs:** updated where behaviour changes, including DESIGN.md if this touches a normative section (§3.2, §3.4, §3.7) and SECURITY_MODEL.md if security behaviour changes. Anything that isn't shipped yet is described as "planned".
+- [ ] **Docs/status:** README, changelog, roadmap and affected website pages are synchronized in this change, or each no-impact surface is explained above. Implemented, tested, planned and released are distinguished.
+- [ ] **Design:** updated where behaviour changes, including DESIGN.md if this touches a normative section (§3.2, §3.4, §3.7) and SECURITY_MODEL.md if security behaviour changes. Anything that isn't shipped yet is described as "planned".
+- [ ] **Site:** `mkdocs build --strict` passed locally or in CI; deployment is verified separately after merge.
 - [ ] **Licence:** new files carry an SPDX header. Nothing is copied from GPL projects (Whisky, Heroic, Bottles, Mythic and others) or from CrossOver. Any reused permissive code is recorded in `NOTICE` and `THIRD_PARTY_LICENSES.md`.
 - [ ] **Provenance:** every new environment variable, registry key or DLL rule cites an open source in a code comment.
 - [ ] **Clean room:** if I recently read a GPL implementation of the same thing, I've said so below, so a second maintainer can review it.
