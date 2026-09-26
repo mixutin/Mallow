@@ -8,10 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-Mallow is in the design phase. No application code exists yet, and nothing has been released.
+Mallow has an initial library-only implementation of part of WF0. There is no runnable app, CLI, Wine runtime or sandbox enforcement, and nothing has been released. G0 and the full WF0 acceptance criteria remain open.
 
 ### Added
 
+- Dependency-free SwiftPM `MallowKit` library and swift-testing target, using the design's Swift 6.2 package manifest and macOS 15 deployment target.
+- Initial WF0 support: `@Defaulted` providers, strict single-key tagged-union helpers, local POSIX path coding, the documented bottle-settings value types, and `ProgramSource` coding. This is not the complete `BottleConfig`, `ProgramConfig`, runtime or launch model set.
+- `JSONStore` with sorted-key JSON, ISO-8601 whole-second dates, reads that distinguish missing files from corruption, and same-directory write/fsync/rename replacement. Callers remain responsible for model validation, schema-version checks and locking the whole read-modify-write transaction.
+- Nineteen generated wire-format fixtures plus tests for defaults, explicit overrides, malformed data, paths, dates and atomic-write failures. `SandboxSettings` records the design's defaults only; it does not provide isolation.
+- `scripts/test.sh` to build the library and run swift-testing without XCTest. Run `scripts/test.sh` for verification or `MALLOW_UPDATE_GOLDENS=1 scripts/test.sh` to regenerate and then review fixtures. The existing CI workflow discovers the package automatically. CLI, app, fake-wine, schemas, remaining WF0 models and macOS integration validation are still planned.
 - Design document ([`docs/DESIGN.md`](https://github.com/mixutin/Mallow/blob/main/docs/DESIGN.md), Draft 2): architecture, licensing model, runtime build pipeline, graphics backends, launch pipeline, testing strategy, and the roadmap to 1.0.
 - Security model ([`docs/SECURITY_MODEL.md`](https://github.com/mixutin/Mallow/blob/main/docs/SECURITY_MODEL.md)): threat model, a kernel sandbox around every Windows program, secure-by-default bottles, Untrusted mode with disposable bottles, signed runtime downloads, and a red-team test plan.
 - 0BSD licence ([`LICENSE`](https://github.com/mixutin/Mallow/blob/main/LICENSE)) for Mallow's own code, scripts and documentation. The Wine runtime stays LGPL-2.1-or-later, and recipes and schemas are CC0-1.0.
