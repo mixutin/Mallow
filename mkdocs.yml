@@ -66,6 +66,7 @@ nav:
   - Home: index.md
   - Getting started: getting-started.md
   - Development previews: development-preview.md
+  - Mac client testing: mac-client-testing.md
   - How it works: how-it-works.md
   - Devlog:
       - blog/index.md

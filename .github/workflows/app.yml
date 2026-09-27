@@ -26,27 +26,51 @@ jobs:
         run: |
           swift --version
           scripts/test.sh
+          scripts/test.sh -c release
       - name: Build the development bundle
         env:
           MALLOW_SOURCE_REVISION: ${{ github.sha }}
           MALLOW_BUILD_NUMBER: ${{ github.run_number }}
         run: |
-          scripts/build-app.sh
+          scripts/build-app.sh release
+          scripts/build-app.sh debug
           scripts/verify-app-bundle.sh dist/Mallow-macos-arm64.zip
+          scripts/verify-app-bundle.sh dist/Mallow-debug-macos-arm64.zip
+          scripts/package-test-kit.sh
       - name: Install and verify the pinned runtime (network integration; no Wine execution)
         run: scripts/test-runtime-install.sh
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: Mallow-macos-arm64
           path: |
-            dist/Mallow-macos-arm64.zip
+            dist/Mallow*.zip
+            dist/Mallow-source.tar.gz
             dist/SHA256SUMS
             dist/build-info.json
+            dist/debug-build-info.json
           if-no-files-found: error
           retention-days: 14
+  compatibility:
+    name: Test packaged clients on macOS 15
+    needs: build
+    runs-on: macos-15
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: Mallow-macos-arm64
+          path: dist
+      - name: Verify actual release and debug clients on the minimum OS
+        run: |
+          sw_vers
+          scripts/verify-app-bundle.sh dist/Mallow-macos-arm64.zip
+          scripts/verify-app-bundle.sh dist/Mallow-debug-macos-arm64.zip
   publish:
     name: Publish development prerelease
-    needs: build
+    needs: [build, compatibility]
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && github.repository == 'mixutin/Mallow'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -82,11 +106,12 @@ jobs:
           Approve this specific app in System Settings > Privacy & Security if macOS asks.
           Never disable Gatekeeper globally.
 
-          New in this preview: install the pinned Wine runtime, not just its archive; per-file runtime
-          integrity checks; an ownership-marked data root; dark-pink native UI, the website flower icon,
-          and reduced-motion-aware loading indicators. Cached downloads are rechecked and reused.
-          Startup uses metadata rather than rehashing every runtime file. Full checks are explicit.
-          The website now has Finnish user-facing pages and an accessible navigation loader.
+          New: Run client checks, read-only Wine/GStreamer architecture-header preflight, local JSON
+          diagnostics export, operation timings and process peak RSS. Reports omit personal paths,
+          raw logs, environment variables and vendor payloads; nothing is automatically uploaded.
+          The optimized app is Mallow-macos-arm64.zip. The separate debug app is for debugging,
+          not performance comparisons. Each has UUID-matched symbols; exact tracked sources and
+          a Mac test kit are attached. Use the app's Run client checks then Export report actions.
 
           Setup requires approval. The installer verifies a private archive snapshot, bounds extraction,
           confines links, preserves the upstream bundle layout and registers only a complete runtime.
@@ -96,12 +121,12 @@ jobs:
           CI checks the complete package, app/icon bundle and installation/integrity of the real pinned
           archive, including altered-file detection. It does not execute Wine, test GUI usability,
           establish FPS or game compatibility, or validate every supported macOS version.
-          Use Copy test report and report actual-Mac results in issue #44.
-          CLI: Mallow.app/Contents/Helpers/mallow runtime verify --json
-          English: https://mixutin.github.io/Mallow/development-preview/
-          Suomi: https://mixutin.github.io/Mallow/fi/development-preview/
+          Use Export report and report actual-Mac results in issue #48.
+          CLI: Mallow.app/Contents/Helpers/mallow diagnostics --self-test --json
+          English: https://mixutin.github.io/Mallow/mac-client-testing/
+          Suomi: https://mixutin.github.io/Mallow/fi/mac-client-testing/
           NOTES
-          gh release create "$TAG" Mallow-macos-arm64.zip SHA256SUMS build-info.json \
+          gh release create "$TAG" Mallow*.zip Mallow-source.tar.gz SHA256SUMS build-info.json debug-build-info.json \
             --target "$SOURCE_SHA" --title "Mallow development ${SOURCE_SHA:0:12}" \
             --notes-file notes.md --draft --prerelease --latest=false
           gh release edit "$TAG" --draft=false --latest=false

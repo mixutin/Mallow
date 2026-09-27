@@ -1,20 +1,23 @@
 // SPDX-License-Identifier: 0BSD
 import Foundation
 import MallowKit
+
 #if canImport(Darwin)
-import Darwin
+  import Darwin
 #else
-import Glibc
+  import Glibc
 #endif
 
 @main struct MallowCommand {
   static func main() async {
     let args = Array(CommandLine.arguments.dropFirst())
     if args.isEmpty || args == ["--help"] || args == ["-h"] {
-      print("""
+      print(
+        """
         Mallow development preview — runtime installation; Windows launching is not enabled
         Usage:
           mallow doctor [--json] [--verify-archive]
+          mallow diagnostics [--json] [--self-test] [--output NEW-FILE.json]
           mallow setup --install-runtime --accept-download [--json]
           mallow setup --download-runtime --accept-download [--json]
           mallow setup --install-rosetta --accept-apple-license [--json]
@@ -27,19 +30,64 @@ import Glibc
       return
     }
     do {
-      if let home = ProcessInfo.processInfo.environment["MALLOW_HOME"], !home.hasPrefix("/") || home.utf8.contains(0) {
+      if let home = ProcessInfo.processInfo.environment["MALLOW_HOME"],
+        !home.hasPrefix("/") || home.utf8.contains(0)
+      {
         throw CLIError.usage
+      }
+      if args.first == "diagnostics" {
+        var json = false
+        var selfTest = false
+        var output: URL?
+        var seen = Set<String>()
+        var index = 1
+        while index < args.count {
+          let flag = args[index]
+          guard seen.insert(flag).inserted else { throw CLIError.usage }
+          switch flag {
+          case "--json": json = true
+          case "--self-test": selfTest = true
+          case "--output":
+            index += 1
+            guard index < args.count, !args[index].hasPrefix("--"), !args[index].utf8.contains(0)
+            else { throw CLIError.usage }
+            output = URL(fileURLWithPath: args[index])
+          default: throw CLIError.usage
+          }
+          index += 1
+        }
+        let result = try await ClientDiagnostics().capture(runSelfTests: selfTest)
+        if let output { try await result.writeNewFile(to: output) }
+        if json {
+          print(String(decoding: try result.json(), as: UTF8.self))
+        } else {
+          print(
+            "Mallow client checks — source \(result.build.revision) (\(result.build.configuration))"
+          )
+          for check in result.checks + (result.selfTests ?? []) {
+            print("[\(check.status.rawValue)] \(check.id): \(check.summary)")
+          }
+          print(
+            "Capture: \(String(format: "%.2f", result.captureMilliseconds)) ms. Windows launching remains unavailable."
+          )
+        }
+        if selfTest && !result.selfTestsPassed { exit(4) }
+        return
       }
       let service = SetupService()
       if args == ["runtime", "path"] {
-        print(try await service.installedRuntimeURL().path); return
+        print(try await service.installedRuntimeURL().path)
+        return
       }
       if args == ["runtime", "verify"] || args == ["runtime", "verify", "--json"] {
         let result = try await service.verifyRuntime()
-        if args.contains("--json") { try printJSON(result) }
-        else {
+        if args.contains("--json") {
+          try printJSON(result)
+        } else {
           print("Runtime verification: \(result.passed ? "passed" : "FAILED")")
-          print("Checked \(result.checkedFiles) files / \(result.checkedBytes) bytes in \(String(format: "%.2f", result.elapsedSeconds)) seconds.")
+          print(
+            "Checked \(result.checkedFiles) files / \(result.checkedBytes) bytes in \(String(format: "%.2f", result.elapsedSeconds)) seconds."
+          )
           for problem in result.problems { print(problem) }
         }
         if !result.passed { exit(4) }
@@ -47,34 +95,52 @@ import Glibc
       }
       let command = args[0]
       let flags = Set(args.dropFirst())
-      let allowed: Set<String> = command == "doctor" ? ["--json", "--verify-archive"] : [
-        "--json", "--install-runtime", "--download-runtime", "--accept-download", "--install-rosetta", "--accept-apple-license",
-      ]
+      let allowed: Set<String> =
+        command == "doctor"
+        ? ["--json", "--verify-archive"]
+        : [
+          "--json", "--install-runtime", "--download-runtime", "--accept-download",
+          "--install-rosetta", "--accept-apple-license",
+        ]
       guard ["doctor", "setup"].contains(command), flags.isSubset(of: allowed),
-        flags.count == args.count - 1 else { throw CLIError.usage }
+        flags.count == args.count - 1
+      else { throw CLIError.usage }
       if command == "setup" {
         let runtime = flags.contains("--install-runtime")
         let download = flags.contains("--download-runtime")
         let rosetta = flags.contains("--install-rosetta")
         guard runtime || download || rosetta, !(runtime && download) else { throw CLIError.usage }
         guard SetupHost.current().supported else { throw SetupError.unsupportedHost }
-        if (runtime || download) && !flags.contains("--accept-download") { throw SetupError.consentRequired }
+        if (runtime || download) && !flags.contains("--accept-download") {
+          throw SetupError.consentRequired
+        }
         if rosetta && !flags.contains("--accept-apple-license") { throw SetupError.consentRequired }
         if rosetta { try await Rosetta.install(licenseAccepted: true) }
-        if runtime { _ = try await service.installRuntime(approved: true) }
-        else if download { _ = try await service.downloadRuntime(approved: true) }
+        if runtime {
+          _ = try await service.installRuntime(approved: true)
+        } else if download {
+          _ = try await service.downloadRuntime(approved: true)
+        }
       }
       let report = try await service.report(verifyArchive: flags.contains("--verify-archive"))
-      if flags.contains("--json") { try printJSON(report) }
-      else {
-        print("Host: \(report.host.system) \(report.host.version); Apple Silicon: \(report.host.isAppleSilicon)")
+      if flags.contains("--json") {
+        try printJSON(report)
+      } else {
+        print(
+          "Host: \(report.host.system) \(report.host.version); Apple Silicon: \(report.host.isAppleSilicon)"
+        )
         print("Rosetta detected: \(report.host.rosettaInstalled)")
-        print("Wine archive cached: \(report.runtimeArchiveCached); hash checked now: \(report.runtimeArchiveVerified)")
+        print(
+          "Wine archive cached: \(report.runtimeArchiveCached); hash checked now: \(report.runtimeArchiveVerified)"
+        )
         print("Wine runtime installed: \(report.runtimeActivated)")
-        print("Use 'mallow runtime verify' for a full integrity check. Windows launching and its sandbox are not implemented.")
+        print(
+          "Use 'mallow runtime verify' for a full integrity check. Windows launching and its sandbox are not implemented."
+        )
       }
     } catch {
-      try? FileHandle.standardError.write(contentsOf: Data("mallow: \(error.localizedDescription)\n".utf8))
+      try? FileHandle.standardError.write(
+        contentsOf: Data("mallow: \(error.localizedDescription)\n".utf8))
       exit(error is CLIError ? 2 : 3)
     }
   }
@@ -85,6 +151,8 @@ import Glibc
   }
   enum CLIError: Error, LocalizedError {
     case usage
-    var errorDescription: String? { "Invalid arguments. Run mallow --help for the implemented commands." }
+    var errorDescription: String? {
+      "Invalid arguments. Run mallow --help for the implemented commands."
+    }
   }
 }
