@@ -43,8 +43,11 @@ public actor SetupService {
 
   public func downloadRuntime(approved: Bool,
     progress: @escaping @Sendable (SetupProgress) -> Void = { _ in }) async throws -> URL {
+    guard approved else { throw SetupError.consentRequired }
     guard SetupHost.current().supported else { throw SetupError.unsupportedHost }
-    return try await acquire(BuiltinComponents.standardWine, approved: approved, progress: progress)
+    // Mark the root before creating a cache inside MALLOW_HOME; never accidentally create an unowned root.
+    try installer.paths.ensureDirectories()
+    return try await acquire(BuiltinComponents.standardWine, approved: true, progress: progress)
   }
 
   public func installRuntime(approved: Bool,
@@ -52,7 +55,6 @@ public actor SetupService {
     guard approved else { throw SetupError.consentRequired }
     guard SetupHost.current().supported else { throw SetupError.unsupportedHost }
     if try await installer.isInstalled() {
-      // An explicit repeat install checks the existing tree, without fetching the archive again.
       return try await installer.install(archive: cacheDirectory.appendingPathComponent(BuiltinComponents.standardWine.fileName),
         approved: true, progress: progress)
     }

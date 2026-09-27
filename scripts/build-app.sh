@@ -22,14 +22,17 @@ cp "$BIN/MallowApp" "$APP/Contents/MacOS/Mallow"
 cp "$BIN/mallow" "$APP/Contents/Helpers/mallow"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
 for name in LICENSE NOTICE THIRD_PARTY_LICENSES.md; do cp "$name" "$APP/Contents/Resources/$name"; done
+cp docs/assets/logo.svg "$APP/Contents/Resources/MallowLogo.svg"
+/usr/bin/swift scripts/make-icns.swift "$STAGE/AppIcon.iconset"
+/usr/bin/iconutil -c icns "$STAGE/AppIcon.iconset" -o "$APP/Contents/Resources/AppIcon.icns"
+/usr/libexec/PlistBuddy -c "Add :CFBundleIconFile string AppIcon" "$APP/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$APP/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :MallowSourceRevision $REVISION" "$APP/Contents/Info.plist"
-# Ad-hoc integrity signatures only: no Developer ID, notarisation, release key or sandbox claim.
 /usr/bin/codesign --force --sign - "$APP/Contents/Helpers/mallow"
 /usr/bin/codesign --force --sign - "$APP"
 scripts/verify-app-bundle.sh "$APP"
 /usr/bin/ditto -c -k --sequesterRsrc --keepParent "$APP" "$ROOT/dist/Mallow-macos-arm64.zip"
 (cd "$ROOT/dist" && /usr/bin/shasum -a 256 Mallow-macos-arm64.zip > SHA256SUMS)
-printf '{"revision":"%s","build":"%s","channel":"development-preview","windowsLaunching":false}\n' \
+printf '{"revision":"%s","build":"%s","channel":"development-preview","runtimeInstallation":true,"windowsLaunching":false}\n' \
   "$REVISION" "$BUILD_NUMBER" > "$ROOT/dist/build-info.json"
 echo "Built dist/Mallow-macos-arm64.zip (development preview)."

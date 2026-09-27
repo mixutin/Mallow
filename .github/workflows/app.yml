@@ -33,6 +33,8 @@ jobs:
         run: |
           scripts/build-app.sh
           scripts/verify-app-bundle.sh dist/Mallow-macos-arm64.zip
+      - name: Install and verify the pinned runtime (network integration; no Wine execution)
+        run: scripts/test-runtime-install.sh
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: Mallow-macos-arm64
@@ -55,7 +57,7 @@ jobs:
         with:
           name: Mallow-macos-arm64
           path: dist
-      - name: Verify and publish immutable preview
+      - name: Verify and publish commit-addressed preview
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -66,7 +68,7 @@ jobs:
           TAG="dev-${SOURCE_SHA:0:12}"
           if gh release view "$TAG" --json isDraft --jq '.isDraft' > existing.txt 2>/dev/null; then
             if grep -qx false existing.txt; then
-              echo "The immutable preview already exists; leaving it unchanged."
+              echo "This preview already exists; leaving it unchanged."
               exit 0
             fi
             echo "An incomplete draft exists. Inspect it before retrying publication." >&2
@@ -75,21 +77,29 @@ jobs:
           cat > notes.md <<NOTES
           Development preview from source commit $SOURCE_SHA.
 
-          Download Mallow-macos-arm64.zip, verify it against SHA256SUMS, unzip, and move Mallow.app to Applications.
-          Requires Apple Silicon and macOS 15 or later. This is ad-hoc signed, not Developer ID signed or notarised.
-          macOS may require a per-app approval in System Settings > Privacy & Security. Do not disable Gatekeeper globally.
+          Download Mallow-macos-arm64.zip and verify SHA256SUMS, then move Mallow.app to Applications.
+          Apple Silicon, macOS 15+. Ad-hoc signed; not Developer ID signed or notarised.
+          Approve this specific app in System Settings > Privacy & Security if macOS asks.
+          Never disable Gatekeeper globally.
 
-          Available for testing: native onboarding, prerequisite checks, consent-gated Rosetta installation, and
-          HTTPS/SHA-256 verified acquisition of the pinned Wine archive. Nothing downloads merely by opening the app.
-          The downloaded archive is NOT an activated runtime. GStreamer setup, bottles, sandboxing and Windows
-          launching are NOT implemented. D3DMetal is never downloaded or bundled.
+          New in this preview: install the pinned Wine runtime, not just its archive; per-file runtime
+          integrity checks; an ownership-marked data root; dark-pink native UI, the website flower icon,
+          and reduced-motion-aware loading indicators. Cached downloads are rechecked and reused.
+          Startup uses metadata rather than rehashing every runtime file. Full checks are explicit.
+          The website now has Finnish user-facing pages and an accessible navigation loader.
 
-          CI checks compilation, unit tests, the bundle, architecture and executable startup. It does not establish
-          graphical usability, successful Apple installation/download on your network, or game compatibility.
-          Use Copy test report in the app and record actual Mac results in issue #42.
-          The bootstrap CLI is inside Mallow.app/Contents/Helpers/mallow.
+          Setup requires approval. The installer verifies a private archive snapshot, bounds extraction,
+          confines links, preserves the upstream bundle layout and registers only a complete runtime.
+          GStreamer setup, bottle creation, Windows launching and the kernel sandbox are NOT implemented.
+          Runtime installed does not mean a Windows application can be launched yet.
 
-          This is an owner-requested development preview, not completion of v0.1/v0.3 or a production release.
+          CI checks the complete package, app/icon bundle and installation/integrity of the real pinned
+          archive, including altered-file detection. It does not execute Wine, test GUI usability,
+          establish FPS or game compatibility, or validate every supported macOS version.
+          Use Copy test report and report actual-Mac results in issue #44.
+          CLI: Mallow.app/Contents/Helpers/mallow runtime verify --json
+          English: https://mixutin.github.io/Mallow/development-preview/
+          Suomi: https://mixutin.github.io/Mallow/fi/development-preview/
           NOTES
           gh release create "$TAG" Mallow-macos-arm64.zip SHA256SUMS build-info.json \
             --target "$SOURCE_SHA" --title "Mallow development ${SOURCE_SHA:0:12}" \
