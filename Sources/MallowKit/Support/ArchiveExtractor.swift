@@ -162,7 +162,10 @@ public struct ArchiveExtractor: Sendable {
     var result: [URL] = []
     while let directory = pending.popLast() {
       try Task.checkCancellation()
-      for url in try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil) {
+      // Construct children from names so Foundation cannot canonicalize only the child
+      // (/var -> /private/var) or introduce a directory trailing slash into receipts.
+      for name in try FileManager.default.contentsOfDirectory(atPath: directory.path) {
+        let url = directory.appendingPathComponent(name, isDirectory: false)
         result.append(url)
         guard result.count <= 100_000 else { throw ArchiveError.sizeLimit }
         if try FileManager.default.attributesOfItem(atPath: url.path)[.type] as? FileAttributeType == .typeDirectory {
