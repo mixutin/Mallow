@@ -1,7 +1,7 @@
 ---
 # SPDX-License-Identifier: 0BSD
 title: Home
-description: Mallow development previews for Apple Silicon. Test native onboarding and verified dependency acquisition; Windows launching is not implemented yet.
+description: Mallow development previews for Apple Silicon. Install and verify Wine through a native dark-pink setup app; Windows launching remains in development.
 hide:
   - navigation
   - toc
@@ -11,78 +11,76 @@ hide:
 
 ![](assets/favicon.svg){ .mallow-hero__icon }
 
-<span class="mallow-status">Pre-alpha · development setup preview</span>
+<span class="mallow-status">Pre-alpha · runtime installation preview</span>
 
 # Mallow
 
-<p class="mallow-hero__tagline">
-Building an open-source way to run Windows games and apps on your Apple Silicon Mac.
-</p>
+<p class="mallow-hero__tagline">Building an open-source way to run Windows games and apps on your Apple Silicon Mac.</p>
 
 [Get a development build](development-preview.md){ .md-button .md-button--primary }
 [Follow the roadmap](roadmap.md){ .md-button }
-[Read the devlog](blog/index.md){ .md-button }
+[Suomeksi](https://mixutin.github.io/Mallow/fi/){ .md-button }
 
 </div>
 
-!!! warning "A testable setup app, not a Windows launcher yet"
+!!! warning "Wine installation is here; Windows launching is not"
 
-    Mallow has a native onboarding app, a bootstrap CLI and library foundations. You can test prerequisite checks and consent-gated dependency acquisition. **Wine activation, bottles, graphics translation and the kernel sandbox are not implemented. This build cannot run Windows programs.**
+    The native app now verifies, unpacks and registers the pinned Wine runtime, and checks installed-file integrity. Bottles, graphics setup, GStreamer installation and the kernel sandbox are still unfinished. **This build cannot run Windows programs.**
 
 ## What you can test now
 
 <div class="grid cards" markdown>
 
--   :material-apple:{ .lg .middle } **Native onboarding**
+-   :material-flower:{ .lg .middle } **A native pink setup app**
 
     ---
 
-    Inspect your Mac and Rosetta status, review setup choices, watch progress, cancel an operation and copy a build-specific test report.
+    Dark-pink styling, the website's flower logo, a matching app icon and real-work loading indicators. Setup asks permission first and supports reduced motion.
 
-    [:octicons-arrow-right-24: Mac testing checklist](development-preview.md#test-on-your-mac)
+    [:octicons-arrow-right-24: Mac test checklist](development-preview.md#test-on-your-mac)
 
--   :material-download:{ .lg .middle } **Verified acquisition**
+-   :material-download:{ .lg .middle } **Install, not just download**
 
     ---
 
-    After approval, acquire the pinned Wine archive over HTTPS and verify its size and SHA-256. Request Rosetta through Apple's installer only after accepting its licence. A cached archive is not an installed runtime.
+    Reuse a checked cache, verify a private archive snapshot, unpack a bounded tree and register the complete Wine bundle. Rosetta uses Apple's installer after separate consent.
 
     [:octicons-arrow-right-24: First-run setup](development-preview.md#first-run-setup)
 
--   :material-source-branch:{ .lg .middle } **Commit-addressed builds**
+-   :material-shield-check:{ .lg .middle } **Verify installed files**
 
     ---
 
-    Successful main-branch app workflows publish development prereleases with the source revision, app ZIP and checksum. PR artifacts are separate and cannot publish releases.
+    Check for missing, changed and unexpected files from the app or CLI. Ordinary startup stays metadata-only; a local receipt is not a signed trust root or sandbox.
 
-    [:octicons-arrow-right-24: Development releases](https://github.com/mixutin/Mallow/releases)
+    [:octicons-arrow-right-24: Installation and integrity](runtime-installation.md)
 
--   :material-console-line:{ .lg .middle } **Shared library and CLI**
+-   :material-source-branch:{ .lg .middle } **Testable development builds**
 
     ---
 
-    The app and limited `doctor`/`setup` CLI use the same setup service. Wire-format and persistence tests form the starting point for future bottle and runtime work.
+    Mac CI tests the package, bundle and real pinned-archive installation. Successful main workflows publish source-addressed ZIPs and checksums, not untested game claims.
 
-    [:octicons-arrow-right-24: Build from source](contributing/dev-setup.md)
+    [:octicons-arrow-right-24: Releases](https://github.com/mixutin/Mallow/releases)
 
 </div>
 
+## Performance and security, together
+
+Hashing and extraction stream through bounded buffers outside the UI's main actor. Progress updates are throttled, and loaders never add fake delays. Input validation, consent, ownership checks and safe installation remain required even when optimizing performance. Startup/RSS and game benchmarks must be measured before claims are made; the [roadmap](roadmap.md#performance-and-security-acceptance-track) makes these acceptance criteria explicit.
+
 ## What the checks mean
 
-The initial app revision passed 37 unit tests, release compilation, bundle checks and executable startup on macOS Apple Silicon CI. **Those are not graphical usability or game-compatibility tests.** Real-Mac GUI, network and Apple-installer results are recorded separately against the build revision in [issue #42](https://github.com/mixutin/Mallow/issues/42). Use the [preview guide](development-preview.md) before testing.
+The installation revision passed the full macOS test/build workflow, including the real pinned-archive installation and altered-file detection, in [this CI run](https://github.com/mixutin/Mallow/actions/runs/36298503241). That check does not execute Wine. Actual-Mac UI, installer behavior, accessibility and performance remain separately tracked in [issue #44](https://github.com/mixutin/Mallow/issues/44). The owner has reported successful archive acquisition/checksum in the previous preview, not a Windows execution result.
 
-The development app is ad-hoc signed, not Developer ID signed or notarised. It is intended for testing and does not claim production readiness.
+These development apps are ad-hoc signed, not Developer ID signed or notarised. Follow the [preview guide](development-preview.md) and keep build success distinct from personal-Mac and game tests.
 
 ## What Mallow will become
 
-The [design](DESIGN.md) describes bottles, a verified open Wine runtime, per-program graphics choices, explicit file sharing and a kernel sandbox around Windows programs. The full app and CLI will share MallowKit. [How it works](how-it-works.md) explains the intended stack; the [security model](SECURITY_MODEL.md) explains the intended boundary and limitations.
-
-The early preview does not waive those requirements. See the [bootstrap addendum](BOOTSTRAP.md) for what was brought forward for testing and the [roadmap](roadmap.md) for what remains.
+The [design](DESIGN.md) describes secure bottles, an open Wine runtime, graphics choices, explicit sharing and kernel isolation. The app and CLI share MallowKit. [How it works](how-it-works.md), the [security model](SECURITY_MODEL.md) and the [staging addendum](BOOTSTRAP.md) distinguish that plan from current capabilities.
 
 ## Get involved
 
-Test the development build on your Mac, finish a shared-model task, improve the docs or verify a design assumption. Read the [contributor guide](contributing/index.md). Every implementation change includes documentation and roadmap review, so this site should describe the code that actually exists.
+Test a preview, complete a shared-model task, verify a design assumption or improve the docs. Read the [contributor guide](contributing/index.md). The main user pages are now also [Finnish](https://mixutin.github.io/Mallow/fi/); the app, full design and historical devlogs remain English. Both languages deploy together, and each change reviews the roadmap and affected pages.
 
-Mallow's own code, scripts and docs are 0BSD. The planned Wine runtime and other components keep their own licences. See [Legal & licensing](legal.md), [NOTICE](https://github.com/mixutin/Mallow/blob/main/NOTICE) and the [security reporting instructions](https://github.com/mixutin/Mallow/blob/main/SECURITY.md).
-
-Mallow is independent and is not affiliated with or endorsed by CodeWeavers, Apple, Microsoft, Valve or the Wine project. Names are used descriptively; trademarks remain with their owners.
+Mallow's own code and docs are 0BSD. Components retain their own licences. See [Legal & licensing](legal.md), [NOTICE](https://github.com/mixutin/Mallow/blob/main/NOTICE) and [security reporting](https://github.com/mixutin/Mallow/blob/main/SECURITY.md). Mallow is independent and not affiliated with CodeWeavers, Apple, Microsoft, Valve or Wine. Trademarks remain with their owners.

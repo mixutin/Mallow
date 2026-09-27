@@ -1,48 +1,48 @@
 ---
 # SPDX-License-Identifier: 0BSD
-description: Current MallowKit/setup architecture and the planned path toward safe runtime installation, bottles and Windows launching.
+description: Current MallowKit runtime-installation architecture, integrity checks, performance boundaries and planned secure Windows launching.
 ---
 
 # Architecture tour
 
-The repository contains a small implementation of a much larger design. Read [DESIGN.md](../DESIGN.md) for the intended architecture and [BOOTSTRAP.md](../BOOTSTRAP.md) for the current preview's staging decisions. This tour does not imply every named module exists.
+This is a small implementation of a larger design. [DESIGN.md](../DESIGN.md) describes the target; [BOOTSTRAP.md](../BOOTSTRAP.md) and [runtime installation design](../runtime-installation.md) describe current staged interfaces.
 
 ## The three layers
 
-**MallowKit** owns reusable models and effects. **mallow** is currently a bootstrap CLI exposing prerequisite inspection and setup acquisition. **MallowApp** is a native SwiftUI onboarding surface over the same setup service. The app target is enabled only on macOS; the portable library/CLI subset supports development testing on Linux.
+**MallowKit** owns reusable models and effects. **mallow** exposes prerequisite inspection, approved setup and runtime verification/path commands. **MallowApp** supplies a native dark-pink SwiftUI interface over the same service. Only macOS builds the app; Linux can test the portable core with its system archive headers and injected hash implementations.
 
 ## MallowKit's dependency direction
-
-The intended order is:
 
 ```text
 Support → Bottles → Runtime → Wine → Programs → Graphics → Launch → Operations → Recipes → Diagnostics → Composition
 ```
 
-Folders may use only layers to their left. Shared identifiers and protocols belong low in the dependency graph. In this preview, Support defines download/host/locking primitives, Runtime supplies the compiled pin, Operations orchestrates setup, and the CLI/app call that orchestration. Support does not depend on the runtime catalog.
+A folder may depend only on layers to its left. Support supplies download/host/lock/path/archive primitives. Runtime supplies compiled pins, the pinned installer and receipt verification. Operations orchestrates setup for CLI/app callers. The CArchive target exposes the system library's public ABI; no archive implementation is vendored.
 
 ## What exists now
 
-Partial WF0 supplies defaulted coding, strict tagged unions, local-path handling, bottle-settings values, `ProgramSource`, atomic JSON persistence and reference fixtures. Setup adds an injectable transport/hash boundary, an ownership-marked cache, a held advisory lock, exact-size/SHA-256 verification and explicit consent. The app supplies progress and a build-specific status report.
+Partial WF0 supplies defaulted/tagged/local-path coding, bottle-settings values, ProgramSource, atomic JSON persistence and reference fixtures. Setup uses pinned HTTPS acquisition, an owned cache, a private verified archive snapshot, confined extraction and a completed runtime tree. Root markers and held locks prevent accidental adoption or concurrent well-behaved writers. Installed-file receipts enable explicit corruption checks.
 
-The runtime archive remains a cache file. There are no bottle stores, activation receipts, Wine process launches, graphics backends or kernel sandbox in this slice. The report encodes those readiness states as false.
+The app reports installed metadata separately from a fresh integrity check. No Wine/Windows program is launched by setup. Bottles, the general runtime catalog/probe/import APIs, multimedia setup, graphics and the kernel sandbox remain unfinished.
 
 ## The launch planner
 
-The full design's launch planner will be pure: inputs describing host, bottle, runtime, capabilities and request produce a launch plan without executing it. Effects will go through injectable services, keeping plans golden-testable. This separation is planned but is not yet a Windows launch implementation.
+The future planner will map host/bottle/runtime/request facts to a deterministic plan without effects. Injected services will apply it and manage processes. That architecture remains the next stage, not an implemented Windows launch function.
 
 ## State and persistence
 
-Atomic file replacement is implemented; it is not sufficient for multi-step transactions. Future owning stores must lock complete read-modify-write operations, reject writes to unsupported schema versions and preserve data on failures. The preview's setup cache is separate from the future application-data root and must not be treated as a bottle or runtime installation.
+Generic atomic JSON replacement does not make a whole store transaction safe. The current runtime installer holds its own advisory lock, publishes only a completed tree and rejects unsupported receipts or damaged existing installations without overwriting. Full schema-safe bottle/settings/runtime stores, repair/rollback and crash recovery remain planned.
+
+Metadata-only startup avoids full file hashing. Streaming file work happens off the UI's main actor; full verification is explicit and reports elapsed time. Actual-Mac RSS/latency and later game performance must be measured. A local receipt is not a signed trust root against malicious same-user software.
 
 ## Security boundary
 
-Wine is not a sandbox. Prefix settings are not a kernel boundary. The planned launch path must integrate and test the [security model](../SECURITY_MODEL.md) before exposing Windows execution. The preview never extracts or runs the acquired archive and never claims it has implemented that boundary.
+Archive validation, ownership and checksums protect the setup operation's defined inputs; they are not a Windows-process sandbox. Kernel isolation and prefix defaults must be implemented/tested before Windows execution is exposed. The [security model](../SECURITY_MODEL.md) keeps that target invariant explicit.
 
 ## Build and test
 
-The SwiftPM package, `scripts/test.sh`, app-bundle scripts and `Development app` workflow are real. CI tests the library, compiles the app, checks its bundle and exercises a non-GUI startup path. A user's Mac still needs to validate GUI, network and installer behavior. Use [development setup](dev-setup.md) and the [preview checklist](../development-preview.md).
+The package, unit suites, app/icon/ZIP scripts and development release workflow exist. Mac CI also installs the actual pinned archive, verifies it, repeats setup and detects an altered file in a disposable root. No Wine process runs in that integration test. The non-GUI smoke entry does not test window usability. Use [development setup](dev-setup.md) and [the real-Mac checklist](../development-preview.md) for the remaining evidence.
 
 ## Where to start
 
-Finish the missing WF0 families in [#9](https://github.com/mixutin/Mallow/issues/9), record preview results in [#42](https://github.com/mixutin/Mallow/issues/42), then build schema-safe stores and verified runtime activation. Keep the design, tests, roadmap and affected website pages synchronized. The early UI is a way to test progress, not permission to skip the remaining foundations.
+Finish [WF0 #9](https://github.com/mixutin/Mallow/issues/9), record [preview #44 results](https://github.com/mixutin/Mallow/issues/44), then work on capabilities/dependencies, schema-safe stores and the tested bottle/launch boundary. Update performance/security acceptance, roadmap and both website languages with each change.

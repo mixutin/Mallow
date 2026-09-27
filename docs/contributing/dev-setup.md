@@ -1,17 +1,17 @@
 ---
 # SPDX-License-Identifier: 0BSD
-description: Build and test Mallow's current library, bootstrap CLI and native development app; preview documentation and report exact platform evidence.
+description: Build and test Mallow's library, runtime installer, CLI and pink native app, plus both website languages.
 ---
 
 # Development setup
 
-The repository now contains buildable library, CLI and Mac app targets. The current app handles prerequisite setup only; it does not run Windows programs. [BOOTSTRAP.md](../BOOTSTRAP.md) distinguishes this slice from the full design.
+The package builds MallowKit, the bootstrap CLI and, on macOS, MallowApp. The current app installs and verifies Wine but does not run Windows programs. See [BOOTSTRAP.md](../BOOTSTRAP.md) and [runtime installation design](../runtime-installation.md).
 
 ## 1. Check your Mac
 
-The app targets Apple Silicon and macOS 15 or later. The package uses Swift tools version 6.2; Swift 6.3 is the full design target. Current Apple Silicon CI has passed with Swift 6.3.3 on macOS 26.6.2. Report your actual toolchain when testing, rather than assuming all supported OS/CLT combinations have been verified.
+Apple Silicon/macOS 15+ is the product target. Package tools version is Swift 6.2; the full design targets Swift 6.3. The macOS pipeline has tested Swift 6.3.3/macOS 26.6.2, not the entire OS/CLT/Xcode matrix. Wine and Rosetta are not needed to compile or run synthetic unit tests.
 
-Wine and Rosetta are not needed to build the native app or run its unit tests. Python and the pinned documentation requirements are needed only for the website. The portable setup/library subset also builds on Linux, but production Mac setup actions are not enabled there.
+The native installer links the OS libarchive library through `Sources/CArchive`. For SDKs without libarchive headers, the bridge declares the needed public API. No Homebrew library is bundled. Linux development needs its system libarchive development package; production Mac installation is not enabled there.
 
 ## 2. Install the Command Line Tools
 
@@ -21,7 +21,7 @@ swift --version
 xcode-select -p
 ```
 
-An existing Xcode toolchain is also usable. The full project is designed for Command Line Tools-only development, but a successful Xcode-backed CI runner is not independent proof of that complete matrix. Do not install Rosetta just to build or test this preview.
+An Xcode toolchain also works. Record the exact active toolchain rather than treating a green Xcode-backed run as proof of CLT-only coverage.
 
 ## 3. Get the code
 
@@ -30,7 +30,7 @@ git clone https://github.com/mixutin/Mallow.git
 cd Mallow
 ```
 
-Contributors can fork first and add the original repository as `upstream`. Set your own Git name/email for your contributions and sign-offs; do not invent another person's certification.
+Contributors can fork first. Use your own Git identity and sign-off, never a fabricated certification for somebody else.
 
 ## 4. Build and test
 
@@ -38,57 +38,66 @@ Contributors can fork first and add the original repository as `upstream`. Set y
 swift build
 scripts/test.sh
 scripts/test.sh -c release
-scripts/test.sh --filter SetupServiceTests
+scripts/test.sh --filter RuntimeInstallTests
 swift run mallow doctor --json
 ```
 
-The package builds MallowKit and the bootstrap CLI; macOS additionally builds MallowApp. The test script uses swift-testing without XCTest. Tests use temporary directories and injected transports/hashes; no real Wine or dependency download is part of the unit suite. There are 37 tests on macOS, including the CryptoKit known-vector test; Linux omits that platform-only case.
-
-The original wire fixtures can be regenerated intentionally with:
+Tests use swift-testing, synthetic archives and injected transports/hashes. The unit suite is offline and never executes Wine. The installer adds 12 functions to the prior 37 macOS tests. See PR #45 for exact-head outcomes.
 
 ```sh
 MALLOW_UPDATE_GOLDENS=1 scripts/test.sh
 ```
 
-Review every changed fixture. This is not a shortcut for making an unexpected failure disappear. `fake-wine`, the complete CLI, schema validation, full layering linter and Windows launch integration tests are still planned; `scripts/lint.sh` does not yet exist. Use `swift format lint --strict --recursive Package.swift Sources Tests` when the tool is available and report the exact result, rather than claiming a missing script ran.
+This intentionally regenerates wire fixtures. Review every difference; do not regenerate just to conceal a regression. Full WF0, fake-wine, schemas and the complete linter remain unfinished. `scripts/lint.sh` does not exist; do not claim it ran. `swift format lint --strict --recursive Package.swift Sources Tests` can be used when available, with its real result reported.
 
-## 5. Try the CLI and the app safely
-
-On Apple Silicon macOS:
+## 5. Try the CLI and app safely
 
 ```sh
 scripts/build-app.sh
 scripts/verify-app-bundle.sh dist/Mallow-macos-arm64.zip
 ```
 
-The output is a ZIP containing the ad-hoc-signed `Mallow.app`, plus `dist/SHA256SUMS` and `dist/build-info.json`. Unzip it to try the native interface. The build script does not install the app, change Gatekeeper or install dependencies. The app's smoke-test option only proves executable startup, not that its GUI was exercised.
+The ZIP includes the ad-hoc-signed app, CLI, original flower icon and notices. Checksums/source metadata are separate files. The build does not install the app or its dependencies; `--smoke-test` exits before showing a window and is not a GUI test.
 
-The bundled CLI lives at `Mallow.app/Contents/Helpers/mallow`. `doctor --json` is inspection only. The following operations have real setup effects and require reviewing their source/licence information first:
+For a throwaway data root, choose an absolute directory that does not already hold unrelated files:
 
 ```sh
-swift run mallow setup --download-runtime --accept-download
-swift run mallow setup --install-rosetta --accept-apple-license
+export MALLOW_HOME="$TMPDIR/mallow-install-test-$(date +%s)"
+swift run mallow setup --install-runtime --accept-download
+swift run mallow runtime verify --json
+swift run mallow runtime path
 ```
 
-The download is the fixed Standard Wine archive; it remains unactivated in the separate setup cache. Rosetta uses Apple's installer. No command launches Wine. Use the [preview checklist](../development-preview.md) to record actual Mac behavior.
+Review source/licence terms before passing acceptance flags. `setup --download-runtime` remains cache-only. Rosetta's `--install-rosetta --accept-apple-license` is separately consented. No command launches Wine or creates a bottle.
+
+The distinct **network integration test** is:
+
+```sh
+scripts/test-runtime-install.sh
+```
+
+Run after a release CLI build on Apple Silicon. It creates a temporary `MALLOW_HOME`, downloads/installs the actual pinned archive, verifies it, repeats setup, alters a temporary installed file and requires integrity failure. It cleans its temporary directory and does not execute Wine. This is not part of the offline unit suite.
 
 ## 6. Preview the docs site
-
-The repository pins MkDocs and Material dependencies in `requirements-docs.txt`:
 
 ```sh
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements-docs.txt
 mkdocs serve
-mkdocs build --strict
+# Or preview the Finnish pages:
+mkdocs serve --config-file mkdocs.fi.yml
+# Build both language trees and validate the generated output:
+scripts/build-docs.sh
 ```
 
-The local site is served under `http://127.0.0.1:8000/Mallow/`. Strict build warnings are failures. Do not claim a local preview ran when only CI built the site. Root-level documentation uses absolute links because it can be embedded in pages; site pages generally link to Markdown files.
+English pages live in `docs/`; Finnish user pages in `docs-fi/`. The build produces English under `site/` and Finnish under `site/fi/`, then checks languages, navigation-loader output, shared assets and search output. There is one Pages artifact, not competing deployments.
+
+Full technical documents and historical posts remain English. The Finnish roadmap is an explicit user summary; update it alongside the root English roadmap when progress changes. `docs/roadmap.md` embeds that root file. The new loader uses a local template/CSS, no external service and no artificial delay.
 
 ## 7. Commit and open a pull request
 
-Every change reviews README, CHANGELOG, ROADMAP and affected site pages in the same PR. Record genuinely unaffected surfaces as no-impact rather than adding meaningless edits. New or changed normative interfaces need a design update; the preview's temporary contracts are recorded in BOOTSTRAP.md.
+Each change reviews README, CHANGELOG, ROADMAP and affected English/Finnish pages. Record real no-impact cases. New staged API/file ownership goes in the installation/bootstrap addendum; full normative changes still follow DESIGN.md and the review process.
 
 ```sh
 git switch -c feat/short-topic
@@ -97,27 +106,28 @@ git commit -s -m "feat: describe the change"
 git push -u origin feat/short-topic
 ```
 
-Follow [CONTRIBUTING.md](https://github.com/mixutin/Mallow/blob/main/CONTRIBUTING.md) for review, licensing and security-sensitive changes. New code must include tests and SPDX headers. Never turn a build-only result into a claim of game compatibility.
-
-CI checks the Swift package, JSON/YAML/SPDX, strict docs and the development app bundle. PR artifacts cannot publish releases. Successful canonical-main app workflows publish commit-addressed development prereleases; relevant main documentation pushes build and deploy GitHub Pages. Check the exact commit and each outcome separately.
+Follow [CONTRIBUTING.md](https://github.com/mixutin/Mallow/blob/main/CONTRIBUTING.md), especially clean-room, licences and security-sensitive review. Performance changes need measurements or clearly stated implementation properties; security checks cannot be removed silently for speed. Main publication/Pages deployment and actual-Mac behavior are checked separately from a green PR build.
 
 ## 8. Saving disk space
 
-`swift package clean` removes build products. The generated `.build/`, `dist/`, `.venv/` and `site/` directories are not source. Remove only directories you recognize and do not point cleanup commands at your real bottle or application data. Unit tests do not require a Wine runtime; a real acquisition creates the separate preview cache documented in the test guide.
+`swift package clean` removes build output. `.build/`, `dist/`, `.venv/` and `site/` are generated directories. Do not apply cleanup commands to unrelated user data. The runtime-install test needs staging space and a network download; ordinary unit tests do not require the vendor archive.
 
 ## Troubleshooting
 
 `no such module 'Testing'`
-:   Try `scripts/test.sh`, record `swift --version` and `xcode-select -p`, and report the toolchain. Do not assume a CLT configuration was tested merely because Xcode CI passed.
+:   Use `scripts/test.sh` and record Swift/developer-directory details.
 
-`mallow run` or bottle commands are unknown
-:   They are not implemented. This preview only exposes `doctor` and setup acquisition.
+Unknown `mallow run` or bottle commands
+:   Those are not implemented. Current additions are runtime installation, verification and path inspection.
 
-Setup cache is refused
-:   Mallow does not adopt an unmarked or unsafe directory. Read the error and report the situation; do not delete unrelated files or weaken ownership checks.
+Unrecognized data root or receipt
+:   Mallow refuses foreign roots and newer/invalid receipts rather than silently overwriting. Report the situation without deleting unrelated files or weakening checks.
 
-App is blocked by macOS
-:   Follow the [development preview guide](../development-preview.md#download-and-verify). Do not disable protections globally or ignore a malware warning.
+Integrity check fails
+:   Existing data is preserved. Repair/rollback is still planned. Do not treat the runtime as verified.
 
-`mkdocs build --strict` fails
-:   Check the named page/link/anchor or navigation omission. Local filesystem paths are not website links. Every new documentation page must be reachable from navigation or its parent page.
+macOS blocks the app
+:   Use [the per-app preview instructions](../development-preview.md#download-and-verify), not global protection disabling.
+
+Strict docs build fails
+:   Inspect the named link, anchor or navigation entry in the appropriate language. Test both configurations before claiming the website is ready.

@@ -2,28 +2,30 @@
 
 # Repository maintenance instructions
 
-These instructions apply to the whole Mallow repository. Read `CONTRIBUTING.md`, `ROADMAP.md`, `docs/DESIGN.md` and `docs/SECURITY_MODEL.md` before changing the relevant area.
+Applies to all of Mallow. Read CONTRIBUTING.md, ROADMAP.md, docs/DESIGN.md, docs/BOOTSTRAP.md, docs/runtime-installation.md and the security model for the relevant area before changing it.
 
 ## Work on the owner's behalf
 
-The repository owner delegates implementation and routine maintenance work to the assistant. Use the authorized `mixutin/Mallow` connection for this repository. Make concrete, tested changes rather than presenting plans as completed work. Owner-authorized merges may be performed after inspecting the exact PR head and its checks; never bypass branch protections or invent approvals. AI assistance does not create a second independent maintainer, reviewer, signing-key custodian or human DCO certification. Do not change governance, security guarantees or release gates merely to make a check pass.
+The owner delegates implementation and routine maintenance to the assistant. Use the authorized `mixutin/Mallow` connection. Make concrete tested changes. Owner-authorized merges require exact-head checks; never bypass branch protections or invent approvals. AI assistance is not a second independent maintainer, reviewer, signing-key custodian or human DCO certification. Do not change governance, security guarantees or release gates merely to make checks pass.
+
+## Performance and security are acceptance requirements
+
+Keep hashing, extraction and scanning off the UI's main actor. Use bounded inputs/buffers, explicit cancellation and useful progress. Do not rehash large runtimes at every startup or flood UI updates. Loaders indicate actual work, do not impose delays, respect reduced motion and stop when idle.
+
+Never trade correctness or security silently for speed: do not skip checksums, trust arbitrary URLs/archives, accept partial installation, overwrite foreign state or weaken sandbox defaults. Describe trust boundaries honestly. A local receipt is not an authenticated trust root; installed metadata is not a fresh integrity check; Wine installation is not Windows-launch readiness. Measure startup/RSS/throughput and later game FPS before making performance claims. Record workload, source revision, hardware and OS.
 
 ## Documentation is part of every change
 
-For every change, review and update these together before it is considered complete:
+Review/update README.md, CHANGELOG.md, ROADMAP.md and affected pages under both `docs/` and `docs-fi/` with the code. Check off implemented/tested subfeatures; do not mark a milestone finished until its exit criteria pass. Keep separate lists for implementation, CI evidence and actual-Mac acceptance.
 
-- `CHANGELOG.md`: what changed, with remaining limitations.
-- `ROADMAP.md`: actual implementation progress and the next unfinished work. Do not mark a milestone complete unless its exit criteria are met.
-- `README.md`: current status, available features and working commands.
-- Relevant pages under `docs/`, including the home page and developer setup when status or commands change. `docs/roadmap.md` embeds the root roadmap; preserve that single source of truth.
-- `docs/DESIGN.md` when changing normative APIs, wire formats or planned source ownership; `docs/SECURITY_MODEL.md` when security behavior changes.
+`docs/roadmap.md` embeds the root English roadmap; preserve this single source. `docs-fi/roadmap.md` is an explicitly translated summary and must be updated alongside it. Full app/technical-document localization remains unfinished unless actually done. Preserve dated devlog posts; add a new post for meaningful progress. Record genuinely unaffected surfaces in the PR instead of inventing changes.
 
-Keep current pages consistent. Preserve dated devlog posts as history; publish a new progress post for a meaningful milestone rather than rewriting old announcements. For a surface genuinely unaffected by a change, record the no-impact reason in the PR instead of adding misleading progress or meaningless edits.
+Update DESIGN.md for normative API/format changes; early staging exceptions and file ownership are documented in BOOTSTRAP.md and runtime-installation.md. Security-model changes must remain explicit. Never describe planned protection as implemented merely because a configuration type exists.
 
 ## Validate, merge and verify publication
 
-Run the applicable tests and `mkdocs build --strict` when available. If a local tool or platform is unavailable, state that and inspect the CI result instead; never claim an unrun check passed. Review diffs for accidental deletions and keep unrelated code intact.
+Run applicable tests and `scripts/build-docs.sh` for **both** strict language builds and generated-output checks. The isolated network check `scripts/test-runtime-install.sh` installs the real pinned archive but never executes Wine; unit tests remain offline. Record unavailable tools/platforms honestly and inspect CI instead. Review the full diff for accidental deletions.
 
-For an authorized merge, check the exact head SHA and required statuses, merge without force, then verify the resulting `main` commit. Documentation is published by `.github/workflows/docs.yml` on relevant pushes to `main`. Inspect both the strict build and the GitHub Pages deployment before saying the website is deployed. A green PR documentation build is not a deployment. Do not modify permissions or release workflows just to work around a missing local tool.
+For authorized merges, inspect exact head/checks, merge without force and confirm the resulting main commit. App builds publish commit-addressed development prereleases only after their checks. Inspect assets before claiming a downloadable release. Docs publish one bilingual Pages artifact; inspect both strict builds and the deployment. A green PR build is neither a publication nor a real-Mac GUI/game test.
 
-Keep unfinished issues open. Do not claim a library model enforces a sandbox, or that a package builds an executable target which does not exist. Do not promise unattended maintenance or future work outside an explicitly configured automation.
+Keep unfinished issues open. Do not promise unattended work outside an explicitly configured automation. Do not modify permissions merely to work around a missing local tool.

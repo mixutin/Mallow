@@ -12,10 +12,11 @@ case "$INPUT" in
   *.app) APP="$INPUT";;
   *) echo "Expected a .app or .zip" >&2; exit 1;;
 esac
-for name in LICENSE NOTICE THIRD_PARTY_LICENSES.md; do test -s "$APP/Contents/Resources/$name"; done
+for name in LICENSE NOTICE THIRD_PARTY_LICENSES.md AppIcon.icns MallowLogo.svg; do test -s "$APP/Contents/Resources/$name"; done
 test -x "$APP/Contents/MacOS/Mallow"
 test -x "$APP/Contents/Helpers/mallow"
 [ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Contents/Info.plist")" = io.github.mixutin.Mallow ]
+[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconFile' "$APP/Contents/Info.plist")" = AppIcon ]
 [ "$(/usr/libexec/PlistBuddy -c 'Print :LSMinimumSystemVersion' "$APP/Contents/Info.plist")" = 15.0 ]
 [ "$(/usr/bin/lipo -archs "$APP/Contents/MacOS/Mallow")" = arm64 ]
 [ "$(/usr/bin/lipo -archs "$APP/Contents/Helpers/mallow")" = arm64 ]
@@ -23,4 +24,4 @@ test -x "$APP/Contents/Helpers/mallow"
 "$APP/Contents/MacOS/Mallow" --smoke-test | grep -qx 'mallow-app-bootstrap-ok'
 "$APP/Contents/Helpers/mallow" doctor --json
 # A smoke check proves executable startup, not graphical usability or Wine compatibility.
-echo "Verified bundle, architecture, licence files, signature and bootstrap entry points."
+echo "Verified bundle, icon, architecture, licence files, signature and bootstrap entry points."

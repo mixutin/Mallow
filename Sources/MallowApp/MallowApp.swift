@@ -16,9 +16,10 @@ import Darwin
   var body: some Scene {
     WindowGroup("Mallow") {
       OnboardingView(model: model)
-        .frame(minWidth: 760, minHeight: 620)
+        .frame(minWidth: 780, minHeight: 620)
         .task { await model.refresh() }
     }
-    .defaultSize(width: 880, height: 760)
+    .defaultSize(width: 960, height: 840)
+    .windowStyle(.hiddenTitleBar)
   }
 }

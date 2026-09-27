@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: 0BSD
 import Foundation
+import Synchronization
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
@@ -29,7 +30,6 @@ public struct SHA256DownloadHasher: DownloadHasher {
     }
     return hash.finalize().map { String(format: "%02x", $0) }.joined()
     #else
-    // Production acquisition is macOS-only. Do not substitute an unverified hash implementation.
     throw SetupError.unsupportedHost
     #endif
   }
@@ -49,6 +49,7 @@ public struct URLSessionDownloadTransport: DownloadTransport {
     configuration.timeoutIntervalForResource = 1800
     let session = URLSession(configuration: configuration, delegate: delegate, delegateQueue: nil)
     defer { session.invalidateAndCancel() }
+    progress(.init(phase: .downloading, received: 0, expected: spec.size))
     let (temporary, response) = try await session.download(from: spec.url)
     defer { try? FileManager.default.removeItem(at: temporary) }
     guard let http = response as? HTTPURLResponse, http.statusCode == 200,
@@ -62,10 +63,12 @@ public struct URLSessionDownloadTransport: DownloadTransport {
   }
 }
 
-// Immutable configuration only; delegate callbacks can arrive on URLSession's delegate queue.
+// Mutable timing state is protected by Mutex. UI progress is capped to ~10 updates/sec,
+// while every size/redirect check still runs and completion is delivered immediately.
 private final class DownloadDelegate: NSObject, URLSessionDownloadDelegate, Sendable {
   let spec: DownloadSpec
   let progress: @Sendable (SetupProgress) -> Void
+  private let lastProgress = Mutex(ContinuousClock.now)
   init(spec: DownloadSpec, progress: @escaping @Sendable (SetupProgress) -> Void) {
     self.spec = spec; self.progress = progress
   }
@@ -82,7 +85,13 @@ private final class DownloadDelegate: NSObject, URLSessionDownloadDelegate, Send
     guard totalBytesWritten <= spec.size,
       totalBytesExpectedToWrite < 0 || totalBytesExpectedToWrite == spec.size
     else { downloadTask.cancel(); return }
-    progress(.init(phase: .downloading, received: totalBytesWritten, expected: spec.size))
+    let emit = lastProgress.withLock { last in
+      let now = ContinuousClock.now
+      guard totalBytesWritten == spec.size || last.duration(to: now) >= .milliseconds(100) else { return false }
+      last = now
+      return true
+    }
+    if emit { progress(.init(phase: .downloading, received: totalBytesWritten, expected: spec.size)) }
   }
   func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask,
     didFinishDownloadingTo location: URL) {}
