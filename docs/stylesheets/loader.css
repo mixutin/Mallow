@@ -1,0 +1,38 @@
+/* SPDX-License-Identifier: 0BSD */
+.mallow-page-loader {
+  display: none;
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 20;
+  align-items: center;
+  gap: .6rem;
+  padding: .65rem 1rem .65rem .7rem;
+  border: 1px solid #ee93c566;
+  border-radius: 2rem;
+  color: #fff2fa;
+  background: #241326;
+  box-shadow: 0 4px 24px #0003;
+  font-size: .7rem;
+  pointer-events: none;
+}
+html[data-mallow-loading] .mallow-page-loader { display: flex; }
+.mallow-page-loader__mark { position: relative; width: 36px; height: 36px; display: grid; place-items: center; }
+.mallow-page-loader__ring {
+  position: absolute;
+  inset: 0;
+  border: 2px solid #ed8dc42b;
+  border-top-color: #ed8dc4;
+  border-right-color: #ed8dc4;
+  border-radius: 50%;
+  animation: mallow-turn 1.2s linear infinite;
+}
+.mallow-page-loader img { display: block; }
+@keyframes mallow-turn { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .mallow-page-loader__ring { animation: none; border-style: dotted; }
+}
+@media (forced-colors: active) {
+  .mallow-page-loader { border: 1px solid CanvasText; background: Canvas; color: CanvasText; }
+  .mallow-page-loader__ring { border-color: CanvasText; }
+}

@@ -1,0 +1,46 @@
+{# SPDX-License-Identifier: 0BSD #}
+{% extends "base.html" %}
+{% block extrahead %}
+{{ super() }}
+<script>
+(function () {
+  "use strict";
+  var root = document.documentElement;
+  var timer;
+  function finish() {
+    root.removeAttribute("data-mallow-loading");
+    window.clearTimeout(timer);
+  }
+  function start() {
+    root.setAttribute("data-mallow-loading", "");
+    window.clearTimeout(timer);
+    timer = window.setTimeout(finish, 8000);
+  }
+  // Only indicate real navigation. Never hide content, trap focus, intercept links or delay a page.
+  if (document.readyState === "loading") start();
+  document.addEventListener("DOMContentLoaded", finish, {once: true});
+  window.addEventListener("pageshow", finish);
+  window.addEventListener("pagehide", finish);
+  document.addEventListener("click", function (event) {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    var anchor = event.target instanceof Element ? event.target.closest("a[href]") : null;
+    if (!anchor || anchor.hasAttribute("download") || (anchor.target && anchor.target !== "_self")) return;
+    var next;
+    try { next = new URL(anchor.href, location.href); } catch (_) { return; }
+    if (next.origin !== location.origin || !/^https?:$/.test(next.protocol)) return;
+    if (next.pathname === location.pathname && next.search === location.search) return;
+    start();
+  });
+}());
+</script>
+{% endblock %}
+{% block header %}
+{{ super() }}
+<div class="mallow-page-loader" role="status" aria-live="polite" aria-atomic="true">
+  <span class="mallow-page-loader__mark" aria-hidden="true">
+    <span class="mallow-page-loader__ring"></span>
+    <img src="{{ config.theme.logo | url }}" width="24" height="24" alt="">
+  </span>
+  <span>{% if config.theme.language == "fi" %}Ladataan sivua{% else %}Loading page{% endif %}</span>
+</div>
+{% endblock %}

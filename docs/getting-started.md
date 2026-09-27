@@ -1,47 +1,51 @@
 ---
 # SPDX-License-Identifier: 0BSD
-description: Start with Mallow's development setup preview on Apple Silicon. Download, build, test, and distinguish implemented setup from planned Windows launching.
+description: Install the pinned Wine runtime with Mallow's development app, verify its files and understand what still blocks Windows launching.
 ---
 
 # Getting started
 
-Mallow is in early implementation. There is now a **development setup app**, but there is not yet a working Windows launcher.
+Mallow is an early runtime-installation preview, not yet a Windows launcher. [Suomenkielinen ohje](https://mixutin.github.io/Mallow/fi/getting-started/).
 
 ## What you can do today
 
-Download a commit-addressed [development prerelease](https://github.com/mixutin/Mallow/releases), verify it and follow the [Mac test guide](development-preview.md). The native app can inspect prerequisites, request Rosetta installation after consent, and download/check the pinned Wine archive after approval. It includes progress, cancellation and a copyable report.
+Download a [development prerelease](https://github.com/mixutin/Mallow/releases), verify its checksum and follow the [Mac test guide](development-preview.md). The native dark-pink app checks prerequisites, requests Rosetta after consent, downloads/reuses and verifies the pinned Wine archive, unpacks it and registers the completed runtime. It also offers a full file-integrity check, cancellation and a copyable report.
 
-You can also build the library, CLI and Mac app from source using the [development setup guide](contributing/dev-setup.md). The current code has no third-party Swift package dependencies.
+## What you need
 
-!!! warning "An acquired archive is not an installed runtime"
+Apple Silicon and macOS 15 or later. Rosetta is not needed merely to open the native app. The archive is approximately 185 MB; allow at least 2 GB free for private staging and checks. Installation stays under Mallow's own application-support directory and preserves the upstream Wine bundle.
 
-    Wine activation, GStreamer setup, bottle creation, graphics and sandboxed Windows launching are not implemented. The app is not ready to run a game or installer. The security model is still the intended design, not a claim about a released Windows execution feature.
+For building, use Swift 6.2 or newer; the full design targets Swift 6.3. Mac CI has exercised Swift 6.3.3/macOS 26.6.2; the complete CLT/Xcode and supported-OS matrix is still separate work. The archive reader links the operating system library, not a bundled Homebrew library.
 
-## What you will need
+## Install Wine
 
-For the native preview: Apple Silicon and macOS 15 or later. Rosetta is not needed to open the native app. The runtime acquisition uses about 185 MB for the compressed download plus temporary storage. Actual runtime extraction and bottle disk requirements belong to later work.
+Open the app, select **Install Wine 11.0_1**, review the source/licence and approve installation. If Rosetta is missing, its installation has a separate Apple-licence checkbox. Press **Install selected dependencies**. Nothing is installed merely by opening the app.
 
-For building: Swift 6.2 or newer; the full design's development target is Swift 6.3. The Apple Silicon CI build uses Swift 6.3.3. No local Xcode GUI, real Wine installation or game is required for the current unit tests. The separate Command Line Tools-only acceptance matrix still needs verification.
+The app rechecks a previous preview's cached archive before reuse. Installation checks a private snapshot, extracts within size/path/link constraints, records hashes and registers the complete tree. After success, use **Show runtime in Finder** or **Verify runtime**. A corrupt existing installation is preserved and reported, not silently replaced; repair/rollback is still planned.
 
-## The first releases
+!!! warning "Installed does not mean ready for Windows programs"
 
-Successful main-branch app workflows publish **development** prereleases with checksums and source revisions. These are ad-hoc signed, not notarised, and are not stable releases. The [preview guide](development-preview.md) explains per-app security prompts and the actual-Mac testing checklist.
+    GStreamer setup, runtime capability probing, bottle creation, graphics configuration and tested kernel isolation remain unfinished. The preview cannot run a game, `.exe` or Windows installer. The receipt is a corruption baseline, not a tamper-proof signature.
 
-Full milestones remain on the [roadmap](roadmap.md): v0.1's secure runtime/bottle/CLI flow, v0.2's own runtime, v0.3's complete native app, v0.4's Steam and recipes, and v0.5's user-supplied graphics toolkit import. The early onboarding window does not complete those milestones.
+## Releases and security prompts
 
-## A preview of the command-line tool
+Successful canonical-main app workflows publish commit-addressed development prereleases with ZIP/checksum/source metadata. They are ad-hoc signed, not Developer ID signed or notarised, and not stable product releases. Read the [per-app approval instructions](development-preview.md#download-and-verify); never disable Gatekeeper globally or dismiss unexpected malware warnings.
 
-These commands exist now:
+## Implemented command-line operations
+
+The CLI is bundled at `Mallow.app/Contents/Helpers/mallow`; it is not automatically added to PATH.
 
 ```sh
 mallow doctor --json
-mallow setup --download-runtime --accept-download
+mallow setup --install-runtime --accept-download
+mallow runtime verify --json
+mallow runtime path
 mallow setup --install-rosetta --accept-apple-license
 ```
 
-Read the upstream release and Apple's licence before giving the corresponding acceptance flag. The first setup command acquires an archive only. The CLI is bundled at `Mallow.app/Contents/Helpers/mallow`; it is not installed into your PATH automatically.
+Review the upstream release and Apple licence before passing consent flags. `doctor` is metadata-only; add `--verify-archive` to check the cache hash. `runtime verify` checks the full installation. The older `setup --download-runtime --accept-download` remains explicitly cache-only.
 
-The intended end-to-end command sequence is still **planned, not implemented**:
+The complete intended milestone sequence is still **planned, not implemented**:
 
 ```sh
 mallow runtime install standard-wine-stable-11.0_1
@@ -49,6 +53,8 @@ mallow bottle create Test
 mallow run --bottle Test --wait notepad
 ```
 
-## What Mallow won't do
+The [roadmap](roadmap.md) checks installation and verification separately from unfinished launch work. [Build from source](contributing/dev-setup.md) or [report your Mac test](development-preview.md#test-on-your-mac).
 
-Mallow does not provide games, anti-cheat bypasses, piracy tooling or bundled D3DMetal. The preview never installs Homebrew or disables Gatekeeper. The v1 host target is Apple Silicon, not Intel Macs. See the [FAQ](faq.md), [bootstrap addendum](BOOTSTRAP.md) and [security model](SECURITY_MODEL.md) for scope and limits.
+## What Mallow will not do
+
+No games, anti-cheat bypasses, piracy tooling, bundled D3DMetal, automatic Homebrew installation or global Gatekeeper changes. Intel hosts are outside the v1 plan. See the [FAQ](faq.md) and [security model](SECURITY_MODEL.md).

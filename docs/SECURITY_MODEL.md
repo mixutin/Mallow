@@ -3,6 +3,14 @@
 > Status: **Design (draft)**. Part of the Mallow design; see `DESIGN.md` for the overall architecture.
 > Items marked 🧪 still need to be validated by the red-team test suite before they ship.
 
+## Current implementation boundary — 27 September 2026
+
+The development preview installs the one pinned Wine archive and offers local file-integrity verification. It does **not** execute Wine/Windows programs, create bottles, or implement the kernel sandbox described below. The following layers remain the target model, not shipped protection. Earlier dated experiments are design-host observations, not tests of this application's launch path.
+
+The implemented installer uses approved HTTPS sources, compiled size/SHA-256 pins, a verified private snapshot, bounded extraction, confined links, owned data roots, advisory locks and completed-tree registration. It does not restore archive-provided owner/ACL/xattr metadata or change system-wide Gatekeeper settings. A local unsigned receipt detects corruption but cannot authenticate files against an attacker able to edit both the receipt and payload. No download or installation happens merely because the app is opened; user consent precedes effects.
+
+Startup reads bounded metadata rather than rehashing all installed files. Full verification is explicit and uses streaming buffers off the UI's main actor. These performance choices do not waive checks during installation or imply a kernel boundary. Power-loss durability, stale-staging recovery, repair/rollback, general import/provenance and signed catalogs remain unfinished. See [runtime installation design](runtime-installation.md), [bootstrap addendum](BOOTSTRAP.md) and the [roadmap](roadmap.md) for exact scope and tests. Report undisclosed vulnerabilities privately through SECURITY.md.
+
 ## 1. Why this exists
 
 Wine is a compatibility layer, **not a sandbox**. Out of the box, a Windows program running under Wine:
@@ -29,17 +37,17 @@ Mallow's goal: **running a suspicious `.exe` in Mallow should put at risk only t
 | Persistence attempts (autostart, LaunchAgents, login items) | Anti-cheat compatibility |
 | Tampered Mallow runtime downloads (supply chain) | |
 
-**Security invariant:** a process launched by Mallow can read and write only (a) its own bottle, (b) the read-only runtime, (c) the system files it needs to run, and (d) folders the user has explicitly shared with that bottle. This applies whether it goes through Wine or not.
+**Target security invariant:** a Windows process launched by Mallow can read and write only (a) its own bottle, (b) the read-only runtime, (c) the system files it needs to run, and (d) folders the user has explicitly shared with that bottle. This must apply whether it goes through Wine or not. It is not yet implemented by the development preview.
 
 ## 3. Defense layers
 
-Security comes from layer 1. Layers 2–5 reduce the attack surface and make accidents less likely, but **no layer except the kernel sandbox is a real security boundary.**
+Security comes from layer 1. Layers 2–5 reduce the attack surface and make accidents less likely, but **no layer except the kernel sandbox is a real security boundary.** These describe the target product.
 
 ### Layer 1: Kernel sandbox (the real boundary)
 
-Every Wine process (`wine`, `wineserver`, `wine-preloader`, and all their children) runs under a macOS **Seatbelt sandbox profile** that Mallow generates for each bottle, using `sandbox-exec -f <profile>` or a small launcher helper that calls `sandbox_init`. The kernel enforces it, so it applies even to programs that make raw syscalls and bypass Wine. Child processes inherit it and can't remove it.
+Every Wine process (`wine`, `wineserver`, `wine-preloader`, and all their children) is planned to run under a macOS **Seatbelt sandbox profile** that Mallow generates for each bottle, using `sandbox-exec -f <profile>` or a small launcher helper that calls `sandbox_init`. The kernel must enforce it, including programs that make raw syscalls and bypass Wine. Child-process inheritance must be tested in Mallow's actual launch path.
 
-**Verified on macOS 26.5 / Apple M4 (2026-09-23):**
+**Design-host observations on macOS 26.5 / Apple M4 (2026-09-23):**
 
 | Test | Result |
 |---|---|
@@ -47,131 +55,115 @@ Every Wine process (`wine`, `wineserver`, `wine-preloader`, and all their childr
 | Sandboxed process opens an outbound network connection with network denied | ❌ Blocked (DNS resolution fails, no connection) |
 | x86_64 binary via Rosetta 2 runs inside the sandbox | ✅ Works |
 
-**Profile shape (sketch):**
+**Profile shape (unshipped sketch):**
 
 ```scheme
 (version 1)
-(allow default)                                   ; v1: deny-list for compatibility; see "Hardening roadmap"
+(allow default)
 
-;; --- Files: hide the home folder, then re-allow only what the bottle needs ---
+;; Files: hide the home folder, then allow only required paths.
 (deny file-read* file-write* (subpath (param "HOME")))
-(allow file-read* (subpath (param "RUNTIME_DIR")))              ; Wine + graphics backends, read-only
-(allow file-read* file-write* (subpath (param "BOTTLE_DIR")))   ; this bottle only
-(allow file-read* file-write* (subpath (param "BOTTLE_TMP")))   ; per-bottle temp dir
-;; user-approved shares are emitted here, e.g.:
-;; (allow file-read* (subpath "/Users/me/Games/ISOs"))                   ; read-only share
-(allow file-read* (literal (string-append (param "HOME") "/Library/Preferences/.GlobalPreferences.plist")))  ; 🧪 needed by AppKit?
+(allow file-read* (subpath (param "RUNTIME_DIR")))
+(allow file-read* file-write* (subpath (param "BOTTLE_DIR")))
+(allow file-read* file-write* (subpath (param "BOTTLE_TMP")))
+;; Explicit shares will be generated here.
+(allow file-read* (literal (string-append (param "HOME") "/Library/Preferences/.GlobalPreferences.plist")))
 
-;; --- Never writable, even if shared by mistake ---
 (deny file-write* (subpath (string-append (param "HOME") "/Library/LaunchAgents")))
 (deny file-write* (subpath "/Library/LaunchAgents") (subpath "/Library/LaunchDaemons"))
 
-;; --- Process execution: only the runtime's own binaries ---
 (deny process-exec*)
-(allow process-exec* (subpath (param "RUNTIME_DIR")))           ; 🧪 plus whatever Rosetta needs
+(allow process-exec* (subpath (param "RUNTIME_DIR")))
 
-;; --- Escape hatches that launch things OUTSIDE the sandbox ---
-(deny appleevent-send)                                          ; no AppleScript/osascript control of other apps
-(deny mach-lookup (global-name "com.apple.coreservices.launchservicesd"))  ; 🧪 blocks `open`/LaunchServices, may affect AppKit
-(deny mach-lookup (global-name "com.apple.SecurityServer"))    ; 🧪 no Keychain access
-(deny mach-lookup (global-name "com.apple.backgroundtaskmanagementagent")) ; 🧪 no login items
+(deny appleevent-send)
+(deny mach-lookup (global-name "com.apple.coreservices.launchservicesd"))
+(deny mach-lookup (global-name "com.apple.SecurityServer"))
+(deny mach-lookup (global-name "com.apple.backgroundtaskmanagementagent"))
 
-;; --- Network: per-bottle toggle (emitted only when network is OFF) ---
+;; Network-off sketch; wineserver socket requirements need measurement.
 ;; (deny network*)
-;; (allow network* (local unix-socket (path-regex #"^/private/tmp/\.wine-")))  ; 🧪 keep wineserver's socket working
+;; (allow network* (local unix-socket (path-regex #"^/private/tmp/\.wine-")))
 ```
 
-Notes:
-- In SBPL, later rules take precedence, which is how "deny home, then allow the bottle" works. Bottles live under `~/Library/Application Support/Mallow/Bottles/<id>`, so the allow for the bottle must come after the deny for home.
-- LaunchServices, Apple Events and background-task registration all **launch processes outside the sandbox**. Blocking them is required for the invariant.
-- macOS privacy controls (TCC) are a second net. Screen recording, keystroke monitoring, camera and microphone still need the user's approval in System Settings, and keystrokes are only delivered to a program's own windows.
-- `sandbox-exec` is marked deprecated by Apple but still works in macOS 26. The launcher helper calls the same underlying API, so if the CLI is ever removed, only the helper needs to change.
+The sketch is not a security guarantee. Rule precedence, allowed runtime/backend paths, required Mach services, Rosetta execution, wineserver socket access and GUI compatibility must be validated before deployment. DESIGN.md §3.14 requires the launch-path revision first. LaunchServices, Apple Events and background-task registration need particular care because operations can be handed to processes outside the intended boundary. TCC is not a substitute for Mallow's tested sandbox. The deprecated sandbox-exec interface and any helper replacement must be evaluated against supported macOS versions.
 
-### Layer 2: Wine prefix hardening (applied when a bottle is created)
+### Layer 2: Wine prefix hardening (planned when a bottle is created)
 
-| Stock Wine | Mallow default |
+| Stock Wine | Mallow target default |
 |---|---|
-| `dosdevices/z:` → `/` | **Removed.** Shared folders get their own drive letters (`s:`, `t:` …) |
-| `Documents`, `Desktop`, `Downloads`, `Music`, `Pictures`, `Videos` are symlinks into `$HOME` | **Real folders inside the bottle** (like winetricks' `isolate_home`) |
-| `winemenubuilder.exe` creates Mac file associations and menu entries | **Disabled** (`winemenubuilder.exe=d` DLL override) |
-| `winebrowser` / `start /unix` / `ShellExecute` can open native Mac apps and URLs | **Disabled** (`winebrowser.exe=d`). Opening URLs goes through a Mallow prompt ("Program wants to open https://… — Open / Copy / Deny") 🧪 |
-| Registry `Run` / `RunOnce` / Startup folder run silently at every launch | **Watched.** Mallow lists autostart entries and alerts when a new one appears |
+| `dosdevices/z:` → `/` | Removed; explicit shared folders get separate drive letters |
+| Home folders linked into the prefix | Real folders inside the bottle |
+| `winemenubuilder.exe` creates Mac associations/menu entries | Disabled |
+| Host-app/URL launch paths | Disabled or brokered through an explicit prompt, subject to validation |
+| Registry Run/RunOnce and Startup entries | Watched and displayed, with changes reported |
+
+No prefix-hardening action is implemented by the current installer. It only installs the runtime bundle.
 
 ### Layer 3: Trust levels per launch
 
-| Mode | Files | Network | Bottle | When |
+| Mode | Files | Network | Bottle | Intended use |
 |---|---|---|---|---|
-| **Standard** (default) | Bottle + explicit shares | On (toggle) | Persistent | Games, Steam, known apps |
-| **Untrusted** | Bottle only, no shares | **Off** | **Disposable APFS clone**, deleted when the program exits | Suspicious downloads, cracked or unknown tools, "just checking what this does" |
-| **Offline** | Bottle + shares | Off | Persistent | Single-player games, old apps that don't need the internet |
+| Standard | Bottle + explicit shares | On, toggleable | Persistent | Known apps and games |
+| Untrusted | Bottle only | Off | Disposable clone | Unknown programs |
+| Offline | Bottle + explicit shares | Off | Persistent | Programs that need no network |
 
-**Disposable bottles:** Mallow clones a clean template bottle with APFS `clonefile(2)`. This is instant and copy-on-write, so it uses almost no extra disk. The program runs in the clone under the Untrusted profile, and the clone is deleted when the program exits. The user can choose "Keep this bottle" before closing it.
-
-**Default choice:** when the user runs an `.exe` or `.msi`, Mallow checks:
-- whether it still carries macOS's `com.apple.quarantine` flag (downloaded from the internet), and where from;
-- whether it has a valid Authenticode signature, and the publisher name if so.
-
-Unsigned files from the internet default to **Untrusted**, and the dialog shows why ("Unsigned · downloaded from Safari 3 minutes ago").
+Disposable bottles are planned as copy-on-write APFS clones of a clean template, with explicit keep/delete behavior. Quarantine and Authenticode checks are planned to guide the default mode. Unsigned internet downloads should default to Untrusted. These modes and checks remain unimplemented; a setup receipt does not supply them.
 
 ### Layer 4: Supply-chain integrity (Mallow's own downloads)
 
-- Each runtime component (Wine build, DXVK, DXMT, MoltenVK, dependency packs) is listed in a **signed manifest**: an Ed25519 signature checked with CryptoKit against a public key pinned inside the app, plus a SHA-256 hash per file.
-- HTTPS only. A hash or signature mismatch is a hard failure, with no "install anyway" button.
-- Dependency verbs (vcredist, d3dcompiler_47, fonts …) are **declarative**: URL + SHA-256 + install steps. Mallow never downloads and runs a script from the internet.
-- Mallow removes the quarantine flag from runtime files **only after** verifying them, so users don't get Gatekeeper popups without Gatekeeper being turned off.
-- Official runtime builds come from public CI (GitHub Actions) using the published Wine sources, so anyone can reproduce and audit them.
-- D3DMetal is never downloaded or bundled by Mallow. The user supplies it from Apple, and Mallow records its hash on import.
+The target component system uses signed manifests/catalogs, pinned public keys, file hashes and anti-rollback. The interim installer uses one compiled-in upstream URL, byte count and SHA-256 instead; the local installation receipt is not that signed manifest.
+
+HTTPS and integrity mismatches must fail without an override. Dependency verbs are planned as declarative downloads/install steps rather than remote scripts. Runtime quarantine handling must occur only after appropriate verification; the present extractor does not restore incoming archive xattrs and does not implement generic recursive quarantine removal. Official own-runtime builds/source publication, signed backend components and user-supplied GPTK import remain later work. D3DMetal is never downloaded or bundled.
 
 ### Layer 5: Transparency and UX
 
-- Every bottle shows a **Security** panel: trust mode, network on/off, shared folders (read-only or read-write), and recent sandbox denials ("Blocked: tried to read ~/.ssh/id_ed25519").
-- Denials are logged, not silent, so users can tell "the game broke because of the sandbox" apart from "the game is broken".
-- Sharing a folder is always explicit, per bottle, and read-only by default.
-- The first time Untrusted mode is used, it shows a one-line honest disclaimer: *"Reduces risk a lot, but no sandbox is perfect. Don't run things you know are malware on a Mac with important data."*
+The target bottle Security panel shows trust mode, network controls, explicit read-only/read-write shares and recent denials. Denials must be distinguishable from ordinary compatibility failures. Sharing is explicit and defaults to read-only. Honest limits accompany Untrusted mode; no antivirus or perfect-safety claim is allowed.
+
+The current setup UI exposes installation/verification progress and errors, keeps consents unchecked, and never equates installed metadata with launch readiness. No bottle Security panel exists yet.
 
 ## 4. Red-team validation plan
 
-A test suite (`Tests/SecurityTests` + `scripts/redteam/`) checks the invariant on every release. It uses **harmless probe programs** that try to escape and report the result. No real malware is involved.
+The future suite uses harmless synthetic probes, not malware. These checks apply to the actual Windows-launch boundary once implemented, not to the installer alone.
 
 | # | Probe | Expected |
 |---|---|---|
-| 1 | Read `~/.ssh/*`, `~/Library/Keychains`, browser profile dirs | Denied |
-| 2 | Write to `~/Desktop`, `~/Documents`, `~/Library/LaunchAgents` | Denied |
-| 3 | List or read another bottle | Denied |
-| 4 | `exec /bin/sh`, `/usr/bin/osascript`, `/usr/bin/open` | Denied |
-| 5 | Launch an app via LaunchServices / Apple Events | Denied |
-| 6 | Outbound TCP/UDP/DNS with network off | Denied |
-| 7 | Same probes issued as **raw syscalls from PE code** (bypassing Wine) | Denied |
-| 8 | Symlink inside the bottle pointing to `~/.ssh`, then read through it | Denied (the kernel checks the resolved path) |
-| 9 | Keychain query via Security framework | Denied |
-| 10 | Register a login item or launch agent | Denied |
-| 11 | Survive after the program exits (daemonize, re-parent) | Killed with the bottle's wineserver; disposable bottle deleted |
-| 12 | Normal workloads: Steam login + download, a DX11 game via D3DMetal/DXMT, audio, controller, clipboard | **Still work** (a sandbox that breaks games won't get used) |
+| 1 | Access sensitive home data such as SSH keys, Keychains and browser profiles | Denied |
+| 2 | Write outside the approved bottle/shares, including LaunchAgents | Denied |
+| 3 | Access another bottle | Denied |
+| 4 | Execute unapproved host binaries | Denied |
+| 5 | Delegate host-app launches through LaunchServices/Apple Events | Denied |
+| 6 | Network traffic with network disabled | Denied |
+| 7 | Repeat access checks without relying on Wine's APIs | Denied |
+| 8 | Follow an external-pointing bottle symlink | Denied |
+| 9 | Query the host Keychain | Denied |
+| 10 | Register persistent host startup items | Denied |
+| 11 | Outlive the controlled program/bottle lifecycle | Stopped and cleaned according to mode |
+| 12 | Normal graphics/audio/controller/clipboard and intended Steam workloads | Still function within documented permissions |
 
-The probes are built first as native macOS binaries (quick to iterate), then as Windows PE binaries run through Wine in CI.
+Native preliminary tests and later Windows integration must record OS, runtime and actual outcomes. The current unit suite instead tests the installer's consent, path/link, staging and integrity boundaries; it does not satisfy this table.
 
 ## 5. Hardening roadmap
 
 | Version | Security milestone |
 |---|---|
-| v0.1 | Layer 2 prefix hardening, signed runtime manifest, `sandbox-exec` deny-list profile with home-folder isolation |
-| v0.2 | Untrusted mode with disposable APFS clones, network toggle, quarantine/Authenticode trust prompt, denial log UI |
-| v0.3 | Red-team suite in CI, including raw-syscall PE probes; autostart watcher |
-| v0.5 | Move from **deny-list (`allow default`) to allow-list (`deny default`)** profiles, with the minimal set of mach services and system paths games need, measured by the compatibility suite |
-| v1.0 | External security review; published threat-model doc; security advisory process (`SECURITY.md`) |
+| Current preview | Pinned archive checks, bounded installation, root ownership and local integrity reports; no Windows execution |
+| v0.1 | Prefix hardening and a tested launch sandbox; pinned interim runtime validation |
+| v0.2 | Signed catalog/manifest system, Untrusted clones, network controls, trust prompts and denial handling |
+| v0.3 | Harmless launch-boundary validation in CI, autostart monitoring and security UI |
+| v0.5 | Measured allow-list profiles with the minimal required services/paths |
+| v1.0 | External review, published threat-model evidence and advisory process |
 
 ## 6. Honest limitations
 
-- **Not an antivirus.** Mallow limits what a program can reach. It doesn't decide whether a program is malicious.
-- **Kernel, GPU-driver and Rosetta vulnerabilities** can in principle break any sandbox. Keep macOS updated.
-- **Standard-mode bottles are only as safe as what you put in them.** Malware running in your "Steam" bottle can steal the Steam session stored in that bottle. Use separate bottles for untrusted things, or Untrusted mode.
-- **Shared folders are shared.** Anything you share read-write can be encrypted by ransomware running in that bottle.
-- **The v1 profile is a deny-list.** It blocks the known escape routes but isn't as tight as an allow-list. Tightening it is on the roadmap (v0.5).
+Mallow is not an antivirus. Kernel, GPU-driver and Rosetta vulnerabilities can in principle break a sandbox. A persistent bottle's data is exposed to programs inside it, and user-shared data is reachable according to the chosen permissions. A compatibility-oriented deny-list is not equivalent to a measured allow-list. All these remain design concerns for the future launch implementation.
+
+The installed-file receipt is unsigned and local; same-user malicious software can potentially change both it and runtime files. Ownership markers and advisory locks coordinate well-behaved Mallow operations, not isolate hostile same-user processes. The preview cannot safely run a suspicious executable because it has no Windows execution feature. Compilation, archive installation and checksum success do not establish that boundary or game compatibility.
 
 ## 7. Open questions
 
-1. Minimal set of mach services and system paths for `winemac.drv` + Metal + CoreAudio + GameController under `deny default` 🧪
-2. Does blocking `launchservicesd` break AppKit window creation or Steam's embedded browser? 🧪
-3. The exact socket path wineserver uses on macOS in Mallow's layout, for the network-off rule 🧪
-4. Whether to use `sandbox-exec` directly or ship a tiny signed launcher that calls `sandbox_init` (better errors, no deprecated CLI)
-5. Clipboard in Untrusted mode: block entirely, or allow only pasting into the program?
+1. Minimal services and system paths for Wine's Mac driver, Metal, CoreAudio and controllers under a deny-by-default profile.
+2. Whether blocking delegation services breaks intended GUI or embedded-browser behavior.
+3. Exact per-bottle wineserver socket needs for network-off operation.
+4. Supported launch-sandbox mechanism and reliable diagnostics across macOS versions.
+5. Clipboard policy for Untrusted mode.
+6. Installer crash recovery, authenticated integrity baselines, repair/rollback and supported-filesystem durability/performance measurements.

@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: 0BSD
+INHERIT: mkdocs.yml
+site_name: Mallow
+site_description: Mallow-kehitysversio Apple Silicon -Maceille. Wine-asennus, eheystarkistus ja selkeät testausohjeet suomeksi.
+site_url: https://mixutin.github.io/Mallow/fi/
+docs_dir: docs-fi
+edit_uri: edit/main/docs-fi/
+theme:
+  language: fi
+  logo: /Mallow/assets/logo.svg
+  favicon: /Mallow/assets/favicon.svg
+nav:
+  - Etusivu: index.md
+  - Käyttöönotto: getting-started.md
+  - Kehitysversioiden testaus: development-preview.md
+  - Toimintaperiaate: how-it-works.md
+  - Kehityssuunnitelma: roadmap.md
+  - Usein kysytyt kysymykset: faq.md
+  - Tietoturva: security.md
+  - Osallistu: contributing.md
+plugins:
+  - search:
+      lang: fi
+extra_css:
+  - /Mallow/stylesheets/extra.css
+  - /Mallow/stylesheets/loader.css
