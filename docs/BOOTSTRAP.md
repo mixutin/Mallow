@@ -55,3 +55,6 @@ The navigation spinner reports real page work without intercepting navigation, h
 The initial app had 37 passing macOS tests; this installer adds 12 synthetic test functions and real-archive integration. Exact-head CI results, fixes and deployment outcomes are recorded on PR #45. The owner reported previous-preview archive acquisition/checksum success; that is not a new-installer or game result.
 
 The app's `--smoke-test` exits before showing a window. Personal-Mac GUI, memory/startup latency, cancellation, accessibility and broader OS/toolchain validation remain explicit tasks in [#44](https://github.com/mixutin/Mallow/issues/44) and [the preview checklist](development-preview.md). No Windows/game compatibility follows from compilation or installation alone.
+
+
+The next staged client APIs and their privacy/performance contract are documented in [Mac client testing](mac-client-testing.md#implementation-contract). They add diagnostic export and local self-tests without changing persisted bottle/runtime formats or enabling Wine execution.

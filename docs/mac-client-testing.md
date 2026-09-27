@@ -50,7 +50,7 @@ With Apple's Command Line Tools installed, unzip the debug app, its matching sym
 xcrun lldb "/path/to/Mallow.app/Contents/MacOS/Mallow"
 ```
 
-In LLDB, use `target symbols add /path/to/symbols/Mallow.dSYM`, set `settings set target.source-map /Users/runner/work/Mallow/Mallow /path/to/Mallow`, then `run`. On a failure, `thread backtrace all` records stacks. The CLI's symbols are `mallow.dSYM`. Symbol archives also record toolchain, build OS, source revision and UUIDs. Do not mix symbols from different builds. Raw debugger/crash output can contain personal paths or application data; inspect and redact it before posting. This preview does not automatically collect crash files or upload reports.
+In LLDB, use `target symbols add /path/to/symbols/MallowApp.dSYM`, set `settings set target.source-map /Users/runner/work/Mallow/Mallow /path/to/Mallow`, then `run`. On a failure, `thread backtrace all` records stacks. The CLI's symbols are `MallowCLI.dSYM`. Symbol archives also record toolchain, build OS, source revision and UUIDs. Do not mix symbols from different builds. Raw debugger/crash output can contain personal paths or application data; inspect and redact it before posting. This preview does not automatically collect crash files or upload reports.
 
 ## What to record on your Mac
 

@@ -40,3 +40,15 @@ Vastaavasti nopeus ei oikeuta tarkistussumman ohittamista, epäonnistuneen asenn
 ## Myöhemmät kokonaisuudet
 
 Oma julkisesti rakennettu Wine-ajoympäristö ja allekirjoitettu komponenttiluettelo, täydellinen pullo- ja ohjelmakäyttöliittymä, Steam ja riippuvuusreseptit, käyttäjän toimittama D3DMetal, diagnostiikka sekä allekirjoitettu ja notarisoitu jakelu ovat seuraavia suunniteltuja kokonaisuuksia. Julkaisupäiviä ei luvata.
+
+
+## Asiakasohjelman testausvalmius
+
+- [x] Wine- ja GStreamer-arkkitehtuuriotsakkeiden rajattu esitarkistus.
+- [x] Paikalliset tallennus-, lukitus-, SHA-256- ja lataussääntötestit.
+- [x] Rajattu JSON-vianmääritys, toimintojen kestot ja prosessin muistihuippu.
+- [x] Debug-koonti, vastaavat dSYM-symbolit, lähdekoodi ja Mac-testipaketti.
+- [x] [Testausohjeet suomeksi](mac-client-testing.md).
+- [ ] Oikean Macin käyttöliittymä-, debugger- ja suorituskykyhavainnot tehtävään #48.
+
+Windows-käynnistys, täydellinen riippuvuuksien tarkistus ja hiekkalaatikko pysyvät keskeneräisinä.

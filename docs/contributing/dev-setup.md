@@ -131,3 +131,6 @@ macOS blocks the app
 
 Strict docs build fails
 :   Inspect the named link, anchor or navigation entry in the appropriate language. Test both configurations before claiming the website is ready.
+
+
+For optimized/debug bundle generation, matching dSYMs and client tests, read [Mac client testing](../mac-client-testing.md). `scripts/build-app.sh release` and `scripts/build-app.sh debug` build separately. `scripts/package-test-kit.sh` adds exact tracked sources and the helper kit. Both language builds remain required.

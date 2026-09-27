@@ -1,6 +1,7 @@
 #!/bin/bash
 # SPDX-License-Identifier: 0BSD
 set -euo pipefail
+trap 'echo "App packaging failed at line $LINENO: $BASH_COMMAND" >&2' ERR
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 [ "$(uname -s)" = Darwin ] && [ "$(uname -m)" = arm64 ] || {
@@ -39,14 +40,20 @@ SYMBOLS="$STAGE/symbols"
 mkdir -p "$SYMBOLS"
 # Apple requires each dSYM UUID to match its exact distributed binary.
 # https://developer.apple.com/documentation/xcode/locating-a-missing-debug-symbol-file
-for pair in "MallowApp:Mallow" "mallow:mallow"; do
+# Distinct names also work on case-insensitive APFS (Mallow vs mallow would collide).
+for pair in "MallowApp:MallowApp" "mallow:MallowCLI"; do
   INPUT="${pair%%:*}"; OUTPUT="${pair##*:}"
   /usr/bin/xcrun dsymutil "$BIN/$INPUT" -o "$SYMBOLS/$OUTPUT.dSYM"
   BINARY_UUID="$(/usr/bin/xcrun dwarfdump --uuid "$BIN/$INPUT" | awk '{print $2}')"
   SYMBOL_UUID="$(/usr/bin/xcrun dwarfdump --uuid "$SYMBOLS/$OUTPUT.dSYM" | awk '{print $2}')"
+  echo "Checking symbols for $OUTPUT: binary=$BINARY_UUID symbols=$SYMBOL_UUID"
   [ -n "$BINARY_UUID" ] && [ "$BINARY_UUID" = "$SYMBOL_UUID" ]
   /usr/bin/xcrun dwarfdump --debug-info "$SYMBOLS/$OUTPUT.dSYM" > "$STAGE/debug-info.txt"
-  grep -q DW_TAG_compile_unit "$STAGE/debug-info.txt"
+  if ! grep -q DW_TAG_compile_unit "$STAGE/debug-info.txt"; then
+    echo "No compilation unit found in $OUTPUT.dSYM" >&2
+    head -40 "$STAGE/debug-info.txt" >&2
+    exit 1
+  fi
   printf '%s %s\n' "$OUTPUT" "$BINARY_UUID" >> "$SYMBOLS/UUIDS.txt"
 done
 printf '{"revision":"%s","configuration":"%s","build":"%s"}\n' "$REVISION" "$CONFIGURATION" "$BUILD_NUMBER" > "$SYMBOLS/build.json"

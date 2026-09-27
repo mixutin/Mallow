@@ -45,3 +45,6 @@ mallow runtime path
 ```
 
 `doctor` tarkistaa oletuksena vain metatiedot. `doctor --verify-archive --json` tarkistaa lisäksi välimuistissa olevan paketin tiivisteen. Täysi tiedostotarkistus tehdään komennolla `runtime verify`; ongelmista ilmoitetaan poistumiskoodilla 4.
+
+
+[Mac-testien opas](mac-client-testing.md) kertoo uusista **Run client checks**- ja **Export report…** -toiminnoista, debug-versiosta ja testipaketista. Ne eivät todista Windows-yhteensopivuutta.

@@ -42,3 +42,6 @@ Tiedostoja käsitellään rajatuissa lohkoissa käyttöliittymän ulkopuolella. 
 Tärkeimmät käyttäjäsivut ovat saatavilla suomeksi. Sovelluksen käyttöliittymä, laaja tekninen suunnitelma ja vanhat kehityspäiväkirjamerkinnät ovat toistaiseksi englanniksi. Sivuston kielivalikosta pääset [englanninkieliselle sivustolle](https://mixutin.github.io/Mallow/).
 
 Mallow'n oma koodi ja dokumentaatio julkaistaan 0BSD-lisenssillä. Hanke ei ole Applen, Microsoftin, Valven tai CodeWeaversin virallinen tuote.
+
+
+**Uutta: [Mac-testit ja vianmääritys](mac-client-testing.md).** Paikalliset testit, riippuvuuksien esitarkistus, rajattu JSON-raportti sekä debug-versio ja vastaavat symbolit. Windows-käynnistys ei vielä ole käytössä.

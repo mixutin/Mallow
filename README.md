@@ -7,9 +7,15 @@
 [![Status: development preview](https://img.shields.io/badge/status-development%20preview-orange)](https://github.com/mixutin/Mallow/releases)
 [![Licence: 0BSD](https://img.shields.io/badge/licence-0BSD-blue)](https://github.com/mixutin/Mallow/blob/main/LICENSE)
 
-> **Pre-alpha: runtime installation preview, not a Windows launcher yet.** Mallow now installs the verified Wine runtime and checks installed-file integrity through a native Mac app and CLI. Bottles, graphics setup and the kernel sandbox are still missing. **This build cannot run Windows programs.**
+> **Pre-alpha: client test-readiness preview, not a Windows launcher yet.** Mallow now installs the verified Wine runtime and checks installed-file integrity through a native Mac app and CLI. Bottles, graphics setup and the kernel sandbox are still missing. **This build cannot run Windows programs.**
 
 [Download development builds](https://github.com/mixutin/Mallow/releases) · [Test on your Mac](https://mixutin.github.io/Mallow/development-preview/) · [Roadmap](https://github.com/mixutin/Mallow/blob/main/ROADMAP.md) · [English docs](https://mixutin.github.io/Mallow/) · [Suomeksi](https://mixutin.github.io/Mallow/fi/)
+
+## Mac client checks and debugging
+
+The test-readiness preview adds **Run client checks**, a read-only dependency/architecture preflight, bounded local self-tests and **Export report…**. Use `mallow diagnostics --self-test --json` for the same checks from Terminal. Reports include the exact build/configuration, check outcomes, action timings and process peak RSS, without raw logs, personal paths or environment variables. Nothing is automatically uploaded. A passing client self-test is not a Windows-launch or sandbox verdict.
+
+Releases now include optimized and debug app ZIPs, UUID-matched dSYM archives, exact tracked sources and a Mac test kit. Use the optimized app for performance observations. Read [Mac client testing](https://mixutin.github.io/Mallow/mac-client-testing/) or [ohje suomeksi](https://mixutin.github.io/Mallow/fi/mac-client-testing/) before testing. GStreamer architecture-header detection does not install or validate its complete dependency stack. Bottle creation and Windows execution remain unfinished.
 
 ## Try the development app
 
@@ -31,7 +37,7 @@ Setup verifies a private copy of the pinned archive, unpacks it, checks the tree
 | Integrity | Recorded file sizes/hashes/link targets; missing, modified and unexpected-file detection; repeat-install verification without a new download |
 | Data protection | Ownership-marked application root, cache ownership, advisory transaction locks and staging cleanup |
 | Performance | Metadata-only startup, streamed hashing/extraction, throttled UI progress and explicit verification timing |
-| CLI | `doctor`, setup acquisition/installation, `runtime verify` and `runtime path` |
+| CLI | `doctor`, `diagnostics`, setup acquisition/installation, `runtime verify` and `runtime path` |
 | Distribution/site | Mac CI builds and commit-addressed prereleases, combined English/Finnish site and a non-blocking page spinner |
 
 **Installed is not the same as ready to run Windows.** GStreamer setup, runtime capability probing, complete WF0 models, bottle creation, graphics and the secure launch pipeline remain unfinished. A local integrity receipt detects corruption; it is not a tamper-proof signature or a sandbox. Damaged installations are preserved and rejected rather than silently overwritten. Automatic repair/rollback is still planned.
@@ -43,6 +49,8 @@ Routine startup does not hash hundreds of megabytes. Full checks happen during i
 Speed does not justify skipping integrity checks: the archive's expected size and SHA-256 are compiled in; extraction rejects traversal, escaping links, duplicate paths and special files; runtime publication happens only after validation. No downloaded Wine program is executed during setup. These controls are not yet the planned Windows-program sandbox. Game FPS, startup latency across Macs, memory consumption and sandbox compatibility must be measured before claims are made.
 
 ## What has actually been tested
+
+[PR #49](https://github.com/mixutin/Mallow/pull/49) adds 12 diagnostic regression tests and packaged release/debug client checks, including a macOS 15 job. The full portable package passed 60 tests in debug and release on Linux; exact macOS CI outcomes are recorded on that PR. These are not graphical-user-interface or game tests.
 
 The foundation preview in PR #43 passed 37 tests on a macOS Apple Silicon runner. The new installer adds 12 test functions covering successful installation, corruption, cancellation, consent, foreign roots, traversal, links, duplicate entries and special files. A separate network integration step installs and verifies the actual pinned archive, repeats setup and checks that altering an installed file is detected. It does not execute Wine. See [PR #45](https://github.com/mixutin/Mallow/pull/45) for exact-head CI results and any build fixes.
 
