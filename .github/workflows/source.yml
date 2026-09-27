@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: 0BSD
+name: Source snapshot
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Archive only tracked source from the exact checkout
+        run: |
+          mkdir source-artifact
+          git rev-parse HEAD > source-artifact/REVISION
+          git archive --format=tar.gz HEAD > source-artifact/Mallow-source.tar.gz
+          (cd source-artifact && sha256sum Mallow-source.tar.gz > SHA256SUMS)
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: Mallow-source
+          path: source-artifact/
+          if-no-files-found: error
+          retention-days: 14
