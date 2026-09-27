@@ -6,36 +6,67 @@ import Darwin
 import Glibc
 #endif
 
-/// First-run acquisition only. Never extracts an archive, clears quarantine or launches Wine.
+/// First-run acquisition and installation of the compiled pin. Never launches a Windows program.
 public actor SetupService {
   public let cacheDirectory: URL
   private let transport: any DownloadTransport
   private let hasher: any DownloadHasher
+  private let installer: StandardWineInstaller
   private static let ownership = Data("io.github.mixutin.Mallow.setup-cache.v1\n".utf8)
 
   public init(cacheDirectory: URL = SetupService.defaultCacheDirectory,
     transport: any DownloadTransport = URLSessionDownloadTransport(),
-    hasher: any DownloadHasher = SHA256DownloadHasher()) {
+    hasher: any DownloadHasher = SHA256DownloadHasher(), paths: MallowPaths = .standard) {
     self.cacheDirectory = cacheDirectory; self.transport = transport; self.hasher = hasher
+    self.installer = StandardWineInstaller(paths: paths, hasher: hasher)
   }
 
   public static var defaultCacheDirectory: URL {
-    FileManager.default.homeDirectoryForCurrentUser
+    if let home = ProcessInfo.processInfo.environment["MALLOW_HOME"], home.hasPrefix("/") {
+      return URL(filePath: home).appendingPathComponent("Caches/Setup", isDirectory: true)
+    }
+    return FileManager.default.homeDirectoryForCurrentUser
       .appendingPathComponent("Library/Caches/io.github.mixutin.Mallow.setup", isDirectory: true)
   }
 
-  public func report(host: SetupHost = .current()) async throws -> SetupReport {
+  /// Ordinary startup uses metadata only. Full hashing is explicit and never inferred from a receipt.
+  public func report(host: SetupHost = .current(), verifyArchive: Bool = false) async throws -> SetupReport {
     let spec = BuiltinComponents.standardWine
     let exists = FileManager.default.fileExists(atPath: cacheDirectory.path)
     if exists { try validateOwnedCache() }
-    let verified = exists ? try await verifyIfPresent(spec) : false
-    return SetupReport(host: host, runtimeArchiveVerified: verified, runtimeID: spec.id)
+    let cached = exists && (try? regularFileSize(cacheDirectory.appendingPathComponent(spec.fileName))) == spec.size
+    let verified = verifyArchive && cached ? try await verifyIfPresent(spec) : false
+    let installed = try await installer.isInstalled()
+    return SetupReport(host: host, runtimeArchiveVerified: verified, runtimeID: spec.id,
+      runtimeArchiveCached: cached, runtimeActivated: installed)
   }
 
   public func downloadRuntime(approved: Bool,
     progress: @escaping @Sendable (SetupProgress) -> Void = { _ in }) async throws -> URL {
     guard SetupHost.current().supported else { throw SetupError.unsupportedHost }
     return try await acquire(BuiltinComponents.standardWine, approved: approved, progress: progress)
+  }
+
+  public func installRuntime(approved: Bool,
+    progress: @escaping @Sendable (SetupProgress) -> Void = { _ in }) async throws -> URL {
+    guard approved else { throw SetupError.consentRequired }
+    guard SetupHost.current().supported else { throw SetupError.unsupportedHost }
+    if try await installer.isInstalled() {
+      // An explicit repeat install checks the existing tree, without fetching the archive again.
+      return try await installer.install(archive: cacheDirectory.appendingPathComponent(BuiltinComponents.standardWine.fileName),
+        approved: true, progress: progress)
+    }
+    let archive = try await downloadRuntime(approved: true, progress: progress)
+    return try await installer.install(archive: archive, approved: true, progress: progress)
+  }
+
+  public func verifyRuntime(progress: @escaping @Sendable (SetupProgress) -> Void = { _ in }) async throws -> RuntimeIntegrityReport {
+    try await installer.verify(progress: progress)
+  }
+
+  public func installedRuntimeURL() async throws -> URL {
+    guard try await installer.isInstalled() else { throw RuntimeInstallError.noInstallation }
+    return await installer.installationURL
   }
 
   // Internal spec injection is used by hermetic tests. Production UI/CLI can request only the compiled pin.
@@ -58,7 +89,6 @@ public actor SetupService {
     progress(.init(phase: .verifying, received: spec.size, expected: spec.size))
     guard try await hasher.sha256(of: temporary) == spec.sha256 else { throw SetupError.checksumMismatch }
     try Task.checkCancellation()
-    // A failed acquisition never replaces a previous file. Only verified bytes reach the final cache name.
     if FileManager.default.fileExists(atPath: destination.path) {
       guard try isRegularFile(destination) else { throw SetupError.unsafeCache }
       guard rename(temporary.path, destination.path) == 0 else {
@@ -107,7 +137,6 @@ public actor SetupService {
     }
     let parent = cacheDirectory.deletingLastPathComponent()
     try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
-    // mkdir is exclusive; FileManager.createDirectory can succeed for an existing directory.
     guard mkdir(cacheDirectory.path, mode_t(0o700)) == 0 else {
       if errno == EEXIST { try validateOwnedCache(); return }
       throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)

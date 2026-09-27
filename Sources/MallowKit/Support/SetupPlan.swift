@@ -14,7 +14,7 @@ public enum SetupError: Error, LocalizedError, Sendable, Equatable {
     case .consentRequired: "Review and approve the download or Apple's licence before setup."
     case .unsupportedHost: "This operation requires an Apple Silicon Mac running macOS 15 or later."
     case .unsafeCache: "The setup cache is not an owned, ordinary Mallow directory. Nothing was overwritten."
-    case .busy: "Another setup operation owns the cache lock. Retry when it finishes."
+    case .busy: "Another setup operation owns the lock. Retry when it finishes."
     case .checksumMismatch: "SHA-256 verification failed. The downloaded file was not activated."
     case .unexpectedSize: "The download size does not match the pinned release."
     case .rejectedResponse: "The server response or redirect was not an approved HTTPS download."
@@ -84,20 +84,35 @@ public struct SetupHost: Codable, Sendable, Equatable {
 public struct SetupReport: Encodable, Sendable, Equatable {
   public var host: SetupHost
   public var runtimeArchiveVerified: Bool
+  public var runtimeArchiveCached: Bool
   public let runtimeID: String
-  // Acquiring an archive does not implement runtime activation, prefix hardening or a sandbox.
-  public let runtimeActivated = false
+  public var runtimeActivated: Bool
   public let sandboxImplemented = false
   public let readyToRunWindows = false
 
-  public init(host: SetupHost, runtimeArchiveVerified: Bool, runtimeID: String) {
+  public init(host: SetupHost, runtimeArchiveVerified: Bool, runtimeID: String,
+    runtimeArchiveCached: Bool = false, runtimeActivated: Bool = false) {
     self.host = host; self.runtimeArchiveVerified = runtimeArchiveVerified
-    self.runtimeID = runtimeID
+    self.runtimeID = runtimeID; self.runtimeArchiveCached = runtimeArchiveCached
+    self.runtimeActivated = runtimeActivated
   }
 }
 
 public struct SetupProgress: Sendable {
-  public enum Phase: String, Sendable { case downloading, verifying, cached }
+  public enum Phase: String, Sendable {
+    case downloading, verifying, cached, extracting, checkingFiles, installing, installed
+    public var label: String {
+      switch self {
+      case .downloading: "Downloading Wine"
+      case .verifying: "Verifying archive SHA-256"
+      case .cached: "Using verified archive"
+      case .extracting: "Unpacking the runtime"
+      case .checkingFiles: "Checking runtime files"
+      case .installing: "Registering the runtime"
+      case .installed: "Runtime installed"
+      }
+    }
+  }
   public var phase: Phase
   public var received: Int64
   public var expected: Int64

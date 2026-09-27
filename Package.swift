@@ -8,9 +8,10 @@ var products: [Product] = [
   .executable(name: "mallow", targets: ["MallowCLI"]),
 ]
 var targets: [Target] = [
-  .target(name: "MallowKit", swiftSettings: common),
+  .systemLibrary(name: "CArchive"),
+  .target(name: "MallowKit", dependencies: ["CArchive"], swiftSettings: common),
   .executableTarget(name: "MallowCLI", dependencies: ["MallowKit"], swiftSettings: common),
-  .testTarget(name: "MallowKitTests", dependencies: ["MallowKit"], exclude: ["Fixtures"], swiftSettings: common),
+  .testTarget(name: "MallowKitTests", dependencies: ["MallowKit", "CArchive"], exclude: ["Fixtures"], swiftSettings: common),
 ]
 #if os(macOS)
 products.append(.executable(name: "MallowApp", targets: ["MallowApp"]))
