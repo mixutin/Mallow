@@ -13,6 +13,7 @@ nav:
   - Etusivu: index.md
   - Käyttöönotto: getting-started.md
   - Kehitysversioiden testaus: development-preview.md
+  - Mac-testit ja vianmääritys: mac-client-testing.md
   - Toimintaperiaate: how-it-works.md
   - Kehityssuunnitelma: roadmap.md
   - Usein kysytyt kysymykset: faq.md

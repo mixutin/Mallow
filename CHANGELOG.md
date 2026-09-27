@@ -6,6 +6,17 @@ Notable Mallow changes are recorded here. Development prereleases use commit-add
 
 ## [Unreleased]
 
+### Added — Mac client test-readiness, 27 September 2026
+
+- App **Run client checks** and **Export report…**, plus `mallow diagnostics [--json] [--self-test] [--output NEW-FILE]`.
+- Read-only prerequisite and bounded Wine/GStreamer architecture-header checks; local atomic-JSON/lock/hash/policy self-tests. No vendor code is loaded, and no network test runs.
+- Privacy-minimized versioned JSON reports: build/configuration, host class/resources, action timings, capture duration, lifetime process peak RSS and timestamped integrity counts. No raw log/environment/path collection or automatic upload. Exports use exclusive mode-0600 creation and refuse overwrites.
+- Optimized and debug app bundles with independently UUID-checked dSYMs, exact tracked source snapshots and a Mac test kit. Debug builds are not performance baselines.
+- Regression tests for malformed headers, no-side-effect capture, report privacy, bounded action history, export refusal and cancellation; English/Finnish client guides and roadmap status.
+
+**Scope:** this completes test-readiness subfeatures, not full runtime capabilities, multimedia installation, bottle stores, the launch planner, sandboxing or Windows execution. Report collection time is not time to first rendered window. Actual-Mac GUI/debugger results remain to be recorded in #48.
+
+
 ### Added — runtime installation and branded preview, 27 September 2026
 
 - [PR #45](https://github.com/mixutin/Mallow/pull/45): Wine 11.0_1 installation from the compiled-in pin. Reuse a verified cache, check a private archive snapshot, extract into a bounded private staging tree, preserve the upstream bundle layout, and register only a complete installation.

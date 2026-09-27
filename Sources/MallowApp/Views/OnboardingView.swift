@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: 0BSD
-import SwiftUI
 import MallowKit
+import SwiftUI
 
 struct OnboardingView: View {
   @ObservedObject var model: AppModel
@@ -17,9 +17,13 @@ struct OnboardingView: View {
             .foregroundStyle(MallowTheme.secondary)
           hostCard
           setupCard
+          clientChecksCard
           activityCard
-          Label("Development preview: Wine can be installed, but Windows launching, bottles and the kernel sandbox are not implemented yet.", systemImage: "exclamationmark.shield")
-            .font(.callout).foregroundStyle(MallowTheme.secondary)
+          Label(
+            "Development preview: Wine can be installed, but Windows launching, bottles and the kernel sandbox are not implemented yet.",
+            systemImage: "exclamationmark.shield"
+          )
+          .font(.callout).foregroundStyle(MallowTheme.secondary)
           HStack {
             Text("Local setup. Explicit consent. No telemetry.")
             Spacer()
@@ -35,7 +39,8 @@ struct OnboardingView: View {
       MallowMark().frame(width: 64, height: 64)
       VStack(alignment: .leading, spacing: 2) {
         Text("Mallow").font(.system(size: 32, weight: .bold, design: .rounded))
-        Text("Your Mac, ready for the next step.").font(.callout).foregroundStyle(MallowTheme.secondary)
+        Text("Your Mac, ready for the next step.").font(.callout).foregroundStyle(
+          MallowTheme.secondary)
       }
       Spacer()
       Text("PRE-ALPHA").font(.caption2.weight(.bold)).tracking(1.5)
@@ -48,19 +53,30 @@ struct OnboardingView: View {
     card("01", "Your Mac", icon: "desktopcomputer") {
       if let report = model.report {
         HStack(alignment: .top, spacing: 24) {
-          status("Platform", report.host.supported ? "Apple Silicon · macOS \(report.host.version)" : "Unsupported host", okay: report.host.supported)
+          status(
+            "Platform",
+            report.host.supported
+              ? "Apple Silicon · macOS \(report.host.version)" : "Unsupported host",
+            okay: report.host.supported)
           Spacer()
-          status("Rosetta", report.host.rosettaInstalled ? "Detected" : "Not installed", okay: report.host.rosettaInstalled)
+          status(
+            "Rosetta", report.host.rosettaInstalled ? "Detected" : "Not installed",
+            okay: report.host.rosettaInstalled)
           Spacer()
-          status("Wine runtime", report.runtimeActivated ? "Installed" : "Not installed", okay: report.runtimeActivated)
+          status(
+            "Wine runtime", report.runtimeActivated ? "Installed" : "Not installed",
+            okay: report.runtimeActivated)
         }
         if report.runtimeArchiveCached && !report.runtimeActivated {
-          Label("Your cached Wine archive will be checked and reused—no unnecessary download.", systemImage: "arrow.down.circle")
-            .font(.caption).foregroundStyle(MallowTheme.secondary)
+          Label(
+            "Your cached Wine archive will be checked and reused—no unnecessary download.",
+            systemImage: "arrow.down.circle"
+          )
+          .font(.caption).foregroundStyle(MallowTheme.secondary)
         }
         HStack {
           Button("Recheck prerequisites") { Task { await model.refresh() } }.disabled(model.busy)
-          Button("Copy test report") { model.copyReport() }
+          Button("Copy test report") { model.copyReport() }.disabled(model.busy)
           if report.runtimeActivated {
             Button("Show runtime in Finder") { model.revealRuntime() }.disabled(model.busy)
           }
@@ -77,22 +93,39 @@ struct OnboardingView: View {
   private var setupCard: some View {
     card("02", "Prepare your runtime", icon: "shippingbox") {
       if model.report?.runtimeActivated == true {
-        Label("Wine 11.0_1 is installed in Mallow's own runtime directory.", systemImage: "checkmark.seal.fill")
-          .foregroundStyle(MallowTheme.accent)
-        Text("A lightweight check keeps startup fast. Run a full integrity check whenever you need to verify the installed files.")
-          .font(.callout).foregroundStyle(MallowTheme.secondary)
-        Button("Verify runtime") { model.verifyRuntime() }.buttonStyle(PinkActionStyle()).disabled(model.busy)
+        Label(
+          "Wine 11.0_1 is installed in Mallow's own runtime directory.",
+          systemImage: "checkmark.seal.fill"
+        )
+        .foregroundStyle(MallowTheme.accent)
+        Text(
+          "A lightweight check keeps startup fast. Run a full integrity check whenever you need to verify the installed files."
+        )
+        .font(.callout).foregroundStyle(MallowTheme.secondary)
+        Button("Verify runtime") { model.verifyRuntime() }.buttonStyle(PinkActionStyle()).disabled(
+          model.busy)
         if let result = model.integrity {
-          Label(result.passed ? "Integrity verified · \(result.checkedFiles) files" : "Integrity check failed · review the log", systemImage: result.passed ? "checkmark.shield" : "exclamationmark.shield")
+          Label(
+            result.passed
+              ? "Integrity verified · \(result.checkedFiles) files"
+              : "Integrity check failed · review the log",
+            systemImage: result.passed ? "checkmark.shield" : "exclamationmark.shield")
         }
       } else {
         Toggle("Install Wine 11.0_1", isOn: $model.runtimeSelected).font(.body.weight(.semibold))
-        Text("185 MB download, at least 2 GB free space for setup. The app verifies, unpacks and registers Wine for you.")
-          .font(.caption).foregroundStyle(MallowTheme.secondary)
+        Text(
+          "185 MB download, at least 2 GB free space for setup. The app verifies, unpacks and registers Wine for you."
+        )
+        .font(.caption).foregroundStyle(MallowTheme.secondary)
         if model.runtimeSelected {
-          Link("Review the upstream release, source and licence ↗", destination: URL(string: "https://github.com/Gcenx/macOS_Wine_builds/releases/tag/11.0_1")!)
-          Text("Wine: LGPL-2.1-or-later. Source hosts: GitHub and its release-asset CDN. Mono and Gecko are included in the upstream bundle. GStreamer setup is a separate, unfinished step.")
-            .font(.caption).foregroundStyle(MallowTheme.secondary)
+          Link(
+            "Review the upstream release, source and licence ↗",
+            destination: URL(
+              string: "https://github.com/Gcenx/macOS_Wine_builds/releases/tag/11.0_1")!)
+          Text(
+            "Wine: LGPL-2.1-or-later. Source hosts: GitHub and its release-asset CDN. Mono and Gecko are included in the upstream bundle. GStreamer setup is a separate, unfinished step."
+          )
+          .font(.caption).foregroundStyle(MallowTheme.secondary)
           Toggle("I approve downloading and installing this runtime", isOn: $model.downloadApproved)
         }
       }
@@ -101,34 +134,73 @@ struct OnboardingView: View {
         Toggle("Install Rosetta through Apple", isOn: $model.rosettaSelected)
         if model.rosettaSelected {
           Link("Read Apple's software licence ↗", destination: Rosetta.licenseURL)
-          Toggle("I have reviewed and agree to Apple's Rosetta licence", isOn: $model.appleLicenseAccepted)
+          Toggle(
+            "I have reviewed and agree to Apple's Rosetta licence",
+            isOn: $model.appleLicenseAccepted)
         }
       }
       if model.report?.runtimeActivated != true || model.rosettaSelected {
         Button("Install selected dependencies") { model.startSetup() }
           .buttonStyle(PinkActionStyle()).disabled(!model.canSetUp)
       }
-      Text("Opening Mallow alone does not install anything. Setup never installs Homebrew, downloads D3DMetal or disables Gatekeeper.")
-        .font(.caption).foregroundStyle(MallowTheme.secondary)
+      Text(
+        "Opening Mallow alone does not install anything. Setup never installs Homebrew, downloads D3DMetal or disables Gatekeeper."
+      )
+      .font(.caption).foregroundStyle(MallowTheme.secondary)
     }.disabled(model.busy)
   }
 
+  private var clientChecksCard: some View {
+    card("03", "Mac client checks", icon: "stethoscope") {
+      Text(
+        "Check prerequisites and run small local storage, lock and checksum tests. No downloads, Wine execution or personal-file scanning."
+      )
+      .font(.callout).foregroundStyle(MallowTheme.secondary)
+      HStack {
+        Button("Run client checks") { model.runClientChecks() }.buttonStyle(PinkActionStyle())
+          .disabled(model.busy)
+        Button("Export report…") { model.exportReport() }.disabled(
+          model.busy || model.clientReport == nil)
+      }
+      if let report = model.clientReport {
+        Text("Captured \(report.generatedAt.formatted()) · \(report.build.configuration) build")
+          .font(.caption).foregroundStyle(MallowTheme.secondary)
+        ForEach(report.checks + (report.selfTests ?? [])) { check in
+          HStack(alignment: .top) {
+            Image(systemName: check.status == .passed ? "checkmark.circle" : "info.circle")
+            VStack(alignment: .leading) {
+              Text("\(check.id) · \(check.status.rawValue)").font(.caption.bold())
+              Text(check.summary).font(.caption)
+            }
+          }
+        }
+        Text(
+          "Capture \(String(format: "%.1f", report.captureMilliseconds)) ms · process peak RSS \(report.peakResidentBytes.map { String($0 / 1_000_000) + " MB" } ?? "unavailable"). This is not a startup or game benchmark."
+        )
+        .font(.caption).foregroundStyle(MallowTheme.secondary)
+      }
+    }
+  }
+
   private var activityCard: some View {
-    card("03", "Activity", icon: "waveform.path") {
+    card("04", "Activity", icon: "waveform.path") {
       if model.busy && model.report != nil {
         HStack {
           MallowLoader(label: model.activity)
           Spacer()
           if model.canCancel { Button("Cancel") { model.cancel() }.buttonStyle(.bordered) }
         }
-        if let progress = model.progress, progress.phase == .downloading || progress.phase == .verifying {
+        if let progress = model.progress,
+          progress.phase == .downloading || progress.phase == .verifying
+        {
           ProgressView(value: progress.fraction).tint(MallowTheme.accent)
           Text("\(progress.received / 1_000_000) / \(progress.expected / 1_000_000) MB")
             .font(.caption.monospaced()).foregroundStyle(MallowTheme.secondary)
         }
       }
       if model.messages.isEmpty {
-        Text("Setup events and verification results appear here.").foregroundStyle(MallowTheme.secondary)
+        Text("Setup events and verification results appear here.").foregroundStyle(
+          MallowTheme.secondary)
       } else {
         ScrollView {
           Text(model.messages.joined(separator: "\n"))
@@ -147,8 +219,10 @@ struct OnboardingView: View {
     }
   }
 
-  private func card<Content: View>(_ number: String, _ title: String, icon: String,
-    @ViewBuilder content: () -> Content) -> some View {
+  private func card<Content: View>(
+    _ number: String, _ title: String, icon: String,
+    @ViewBuilder content: () -> Content
+  ) -> some View {
     VStack(alignment: .leading, spacing: 16) {
       HStack(spacing: 10) {
         Text(number).font(.caption.monospaced().weight(.bold)).foregroundStyle(MallowTheme.accent)
@@ -157,6 +231,7 @@ struct OnboardingView: View {
       content()
     }.padding(22).frame(maxWidth: .infinity, alignment: .leading)
       .background(MallowTheme.surface, in: RoundedRectangle(cornerRadius: 18))
-      .overlay(RoundedRectangle(cornerRadius: 18).stroke(MallowTheme.accent.opacity(0.14), lineWidth: 1))
+      .overlay(
+        RoundedRectangle(cornerRadius: 18).stroke(MallowTheme.accent.opacity(0.14), lineWidth: 1))
   }
 }

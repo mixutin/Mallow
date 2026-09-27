@@ -17,7 +17,7 @@ Development builds expose implemented capabilities for actual-Mac testing. [Suom
 Open [GitHub Releases](https://github.com/mixutin/Mallow/releases) and choose a `dev-<commit>` prerelease. Download **Mallow-macos-arm64.zip**, **SHA256SUMS** and optionally **build-info.json** from that same release. In their directory:
 
 ```sh
-shasum -a 256 -c SHA256SUMS
+grep '  Mallow-macos-arm64.zip$' SHA256SUMS | shasum -a 256 -c -
 ```
 
 The result should be `Mallow-macos-arm64.zip: OK`. A checksum detects corrupted/mismatched bytes; it is not proof of an independent audit.
@@ -85,3 +85,6 @@ Moving the app to Trash does not remove its cache/runtime. Do not manually merge
 ## Next step toward Windows execution
 
 The [roadmap](roadmap.md) now checks off pinned installation, ownership and integrity verification. It still requires complete models/stores, capability/dependency checks, bottle creation, process planning and a tested kernel sandbox before the Notepad milestone.
+
+
+For the new **Run client checks** / **Export report…** actions, debug builds, matching symbols and test-kit instructions, read [Mac client testing](mac-client-testing.md). These are client tests, not Windows-compatibility tests.

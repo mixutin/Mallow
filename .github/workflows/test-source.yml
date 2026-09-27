@@ -1,0 +1,33 @@
+# SPDX-License-Identifier: 0BSD
+name: Test source snapshot
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Archive the exact tracked source for debugging
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          git archive --format=tar --prefix=Mallow/ HEAD | gzip -n > dist/Mallow-source.tar.gz
+          git rev-parse HEAD > dist/source-revision.txt
+          (cd dist && sha256sum Mallow-source.tar.gz > SOURCE-SHA256SUMS)
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: Mallow-test-source
+          path: |
+            dist/Mallow-source.tar.gz
+            dist/source-revision.txt
+            dist/SOURCE-SHA256SUMS
+          if-no-files-found: error
+          retention-days: 14

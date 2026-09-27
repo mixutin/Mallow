@@ -2,7 +2,7 @@
 
 # Mallow Roadmap
 
-> **Pre-alpha: runtime installation preview. Updated 27 September 2026.** Wine installation, installed-file verification, ownership-protected storage, native pink onboarding and automatic Mac builds are implemented. Windows launching and its kernel sandbox are not. Performance and security are acceptance requirements, not optional polish.
+> **Pre-alpha: client test-readiness preview. Updated 27 September 2026.** Wine installation, installed-file verification, ownership-protected storage, native pink onboarding and automatic Mac builds are implemented. Windows launching and its kernel sandbox are not. Performance and security are acceptance requirements, not optional polish.
 
 This is the progress summary of [DESIGN.md §8](https://github.com/mixutin/Mallow/blob/main/docs/DESIGN.md#8-roadmap) and the [security model](https://github.com/mixutin/Mallow/blob/main/docs/SECURITY_MODEL.md). Detailed milestone criteria remain the long-term plan. The [bootstrap addendum](https://github.com/mixutin/Mallow/blob/main/docs/BOOTSTRAP.md) and [runtime installation design](https://mixutin.github.io/Mallow/runtime-installation/) record the early preview's staged interfaces. No release dates are promised.
 
@@ -20,7 +20,7 @@ A native Mac app and full CLI will share MallowKit to run Windows software throu
 | Runtime | Pinned archive acquisition, confined extraction, completed-tree registration and per-file integrity checks implemented |
 | Windows execution | Disabled; bottle/launch pipeline and kernel sandbox missing |
 | Website | English and Finnish principal user pages, localized search/navigation, non-blocking loader |
-| Evidence | Exact-head automated results are on PR #45; real-Mac tests are separately recorded in #44 |
+| Evidence | Installer evidence: PR #45 / issue #44. Client diagnostics and debug builds: PR #49 / issue #48. Personal-Mac acceptance remains separate |
 
 [PR #41](https://github.com/mixutin/Mallow/pull/41) established the library; [#43](https://github.com/mixutin/Mallow/pull/43) added acquisition/onboarding. [#45](https://github.com/mixutin/Mallow/pull/45) adds runtime installation and the branded preview. [#9](https://github.com/mixutin/Mallow/issues/9) still tracks full WF0. [#44](https://github.com/mixutin/Mallow/issues/44) tracks actual-Mac verification of this slice.
 
@@ -45,6 +45,15 @@ A checked item means the named implementation exists with its scoped tests. It d
 - [x] Non-blocking website navigation spinner and a combined bilingual Pages build.
 - [x] Documentation-update instructions and one root English roadmap embedded by the site; the Finnish summary is updated alongside it.
 
+### Client test-readiness work
+
+- [x] Read-only Wine/GStreamer architecture-header preflight with bounded input handling. Full capability and dependency-load probes remain open.
+- [x] Explicit local client self-tests for atomic storage, locking, SHA-256 and download policy; no vendor code or network execution.
+- [x] App/CLI JSON diagnostics with allowlisted fields, bounded session action timings, process peak RSS and explicit unfinished-feature flags.
+- [x] Local export that refuses overwrite/symlinks and omits raw logs, personal paths, environment and vendor payloads.
+- [x] Optimized/debug app packaging, UUID-matched dSYMs, tracked source archive and a first-Mac-test kit.
+- [x] English/Finnish client testing and debugging instructions. Actual-Mac results remain pending in [#48](https://github.com/mixutin/Mallow/issues/48).
+
 ### Evidence still to collect on the owner's Mac
 
 The owner reported successful Wine acquisition and SHA-256 verification in the preceding preview. The following remain unverified for the new installer until a corresponding test report is submitted:
@@ -62,7 +71,7 @@ Use the [preview checklist](https://mixutin.github.io/Mallow/development-preview
 
 - [ ] Finish all WF0 model families, wire-table cases and JSON schemas; #9 remains open.
 - [ ] Add schema-version guards and transaction-safe bottle/runtime/settings stores. Root ownership is only one completed subtask.
-- [ ] Add runtime capability probing, generic import/provenance/signature checks and multimedia dependency detection.
+- [ ] Complete runtime capability probing, generic import/provenance/signature checks and multimedia dependency-load tests. Header-only Wine/GStreamer detection is implemented; it is not complete capability detection.
 - [ ] Implement pinned, consent-aware GStreamer and other required dependency installation with post-install verification.
 - [ ] Add runtime repair/rollback and safe removal. Damaged installations are currently preserved and rejected.
 - [ ] Add fake-wine and a pure launch planner with deterministic golden tests and bounded process/log handling.
@@ -75,7 +84,7 @@ Neither priority is traded away silently for the other. Each feature must descri
 
 | Area | Implemented requirement | Remaining measurement or protection |
 |---|---|---|
-| Startup | Metadata/receipt checks only; no automatic full archive/runtime hash | Actual-Mac cold/warm startup time and memory budget |
+| Startup | Metadata/receipt checks only; no automatic full archive/runtime hash | Report collection/action timing and process peak RSS available; actual cold/warm UI startup budget still unmeasured |
 | Large files | 1 MiB streaming buffers and off-main-actor hashing/extraction | Peak RSS and throughput measurements across supported Macs |
 | Progress | Download UI updates capped near 10/sec; no artificial waiting; loader absent when idle | Real accessibility/UI responsiveness tests |
 | Download trust | Compiled-in source, exact size/SHA-256, approved HTTPS redirects | Signed catalogs, anti-rollback and component lifecycle |
@@ -97,7 +106,7 @@ Any optimization that skips a required checksum, accepts an unsafe archive, sile
 | v0.3 | Complete native app: bottles, programs, settings, runtime manager, logs and onboarding | Setup/verification preview only |
 | v0.4 | Steam, dependency recipes and winetricks | Planned |
 | v0.5 | User-supplied D3DMetal, upscalers and tighter sandbox profiles | Planned |
-| v0.6 | Shortcuts, diagnostics, accessibility and localization | Initial visual/accessibility work and Finnish website only |
+| v0.6 | Shortcuts, diagnostics, accessibility and localization | Initial client diagnostics/self-tests, visual work and Finnish website; full milestone open |
 | v0.8 | Developer ID, notarisation, automatic updates and distribution | Planned; ad-hoc previews do not satisfy it |
 | v0.9 | Existing-prefix imports and community recipes | Planned |
 | v1.0 | Release criteria and external security review met | Planned |

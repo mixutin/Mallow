@@ -84,3 +84,6 @@ The [design](DESIGN.md) describes secure bottles, an open Wine runtime, graphics
 Test a preview, complete a shared-model task, verify a design assumption or improve the docs. Read the [contributor guide](contributing/index.md). The main user pages are now also [Finnish](https://mixutin.github.io/Mallow/fi/); the app, full design and historical devlogs remain English. Both languages deploy together, and each change reviews the roadmap and affected pages.
 
 Mallow's own code and docs are 0BSD. Components retain their own licences. See [Legal & licensing](legal.md), [NOTICE](https://github.com/mixutin/Mallow/blob/main/NOTICE) and [security reporting](https://github.com/mixutin/Mallow/blob/main/SECURITY.md). Mallow is independent and not affiliated with CodeWeavers, Apple, Microsoft, Valve or Wine. Trademarks remain with their owners.
+
+
+**New: [Mac client checks and debugging](mac-client-testing.md).** Run local self-tests, inspect missing prerequisites, export a privacy-minimized report and use the matching debug build/symbols. Windows launching remains unavailable.

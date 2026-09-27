@@ -23,5 +23,17 @@ test -x "$APP/Contents/Helpers/mallow"
 /usr/bin/codesign --verify --deep --strict --verbose=2 "$APP"
 "$APP/Contents/MacOS/Mallow" --smoke-test | grep -qx 'mallow-app-bootstrap-ok'
 "$APP/Contents/Helpers/mallow" doctor --json
+"$APP/Contents/Helpers/mallow" diagnostics --self-test --json > "${APP%/Mallow.app}/client-report.json"
+python3 - "$APP/Contents/Info.plist" "${APP%/Mallow.app}/client-report.json" <<'PYCHECK'
+import json, plistlib, sys
+with open(sys.argv[1], "rb") as file:
+    info = plistlib.load(file)
+with open(sys.argv[2]) as file:
+    report = json.load(file)
+assert report["build"]["revision"] == info["MallowSourceRevision"]
+assert report["build"]["configuration"] == info["MallowBuildConfiguration"]
+assert report["selfTests"] and all(check["status"] == "passed" for check in report["selfTests"])
+assert report["windowsLaunching"] is False and report["sandboxImplemented"] is False
+PYCHECK
 # A smoke check proves executable startup, not graphical usability or Wine compatibility.
 echo "Verified bundle, icon, architecture, licence files, signature and bootstrap entry points."
